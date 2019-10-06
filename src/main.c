@@ -30,9 +30,9 @@ int main()
             uint32_t currentLed = LEDS[i];
 
             GPIO_SetBits(GPIOE, currentLed);
-            DELAY(100000);
+            delay(100000);
             GPIO_ResetBits(GPIOE, currentLed);
-            DELAY(100000);
+            delay(100000);
         }
     }
 
