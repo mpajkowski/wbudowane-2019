@@ -1,37 +1,38 @@
 #include "constants.h"
 #include "utils.h"
-#include <stm32f30x_rcc.h>
+#include <stm32f3xx_ll_bus.h>
+#include <stm32f3xx_ll_rcc.h>
 
 void initLeds()
 {
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOE, ENABLE);
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOE);
 
     uint32_t allLeds = 0;
     for (size_t i = 0; i < LEDS_N; i++) {
         allLeds |= LEDS[i];
     }
 
-    GPIO_InitTypeDef gpioInitStruct = {
-        .GPIO_Pin = allLeds,
-        .GPIO_Mode = GPIO_Mode_OUT,
-        .GPIO_OType = GPIO_OType_PP,
+    LL_GPIO_InitTypeDef gpioInitStruct = {
+        .Pin = allLeds,
+        .Mode = LL_GPIO_MODE_OUTPUT,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
     };
 
-    GPIO_Init(GPIOE, &gpioInitStruct);
+    LL_GPIO_Init(GPIOE, &gpioInitStruct);
 }
 
 int main()
 {
-    RCC_DeInit();
+    LL_RCC_DeInit();
     initLeds();
 
     for (;;) {
         for (size_t i = 0; i < LEDS_N; i++) {
             uint32_t currentLed = LEDS[i];
 
-            GPIO_SetBits(GPIOE, currentLed);
+            LL_GPIO_SetOutputPin(GPIOE, currentLed);
             delay(100000);
-            GPIO_ResetBits(GPIOE, currentLed);
+            LL_GPIO_ResetOutputPin(GPIOE, currentLed);
             delay(100000);
         }
     }
