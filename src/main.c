@@ -8,18 +8,22 @@ void delay(uint32_t us)
     }
 }
 
-int main()
-{
-    RCC_DeInit();
+void initGpioPins() {
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOE, ENABLE);
 
-    GPIO_InitTypeDef gpioInit = {
-        .GPIO_Pin = GPIO_Pin_8, 
+    GPIO_InitTypeDef gpioInitStruct = {
+        .GPIO_Pin = GPIO_Pin_All,
         .GPIO_Mode = GPIO_Mode_OUT,
         .GPIO_OType = GPIO_OType_PP,
     };
 
-    GPIO_Init(GPIOE, &gpioInit);
+    GPIO_Init(GPIOE, &gpioInitStruct);
+}
+
+int main()
+{
+    RCC_DeInit();
+    initGpioPins();
 
     for (;;) {
         GPIO_SetBits(GPIOE, GPIO_Pin_8);
