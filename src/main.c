@@ -3,12 +3,13 @@
 
 void delay(uint32_t us)
 {
-    while (us--) {
-        asm volatile ("nop");
-    }
+while (us--) {
+asm volatile("nop");
+}
 }
 
-void initGpioPins() {
+void initGpioPins()
+{
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOE, ENABLE);
 
     GPIO_InitTypeDef gpioInitStruct = {
