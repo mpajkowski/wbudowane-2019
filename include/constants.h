@@ -11,6 +11,7 @@
 #define LED6_PIN GPIO_Pin_13
 #define LED7_PIN GPIO_Pin_14
 #define LED8_PIN GPIO_Pin_15
+#define LEDS_N 8
 
 uint32_t const LEDS[] = { LED1_PIN, LED2_PIN, LED3_PIN, LED4_PIN,
                           LED5_PIN, LED6_PIN, LED7_PIN, LED8_PIN };
