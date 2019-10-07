@@ -31,19 +31,7 @@ void initDisplay()
 int main()
 {
     LL_RCC_DeInit();
-    initLeds();
     initDisplay();
-
-    for (;;) {
-        for (size_t i = 0; i < LEDS_N; i++) {
-            uint32_t currentLed = LEDS[i];
-
-            LL_GPIO_SetOutputPin(LED_PORT, currentLed);
-            delay(100000);
-            LL_GPIO_ResetOutputPin(LED_PORT, currentLed);
-            delay(100000);
-        }
-    }
 
     return 0;
 }
