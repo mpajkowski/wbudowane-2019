@@ -1,38 +1,46 @@
 #include "constants.h"
 #include "utils.h"
-#include <stm32f3xx_ll_bus.h>
-#include <stm32f3xx_ll_rcc.h>
 
 void initLeds()
 {
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOE);
-
-    uint32_t allLeds = 0;
-    for (size_t i = 0; i < LEDS_N; i++) {
-        allLeds |= LEDS[i];
-    }
+    ENABLE_CLOCK_LED;
 
     LL_GPIO_InitTypeDef gpioInitStruct = {
-        .Pin = allLeds,
+        .Pin = LED_ALL_PINS,
         .Mode = LL_GPIO_MODE_OUTPUT,
         .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
     };
 
-    LL_GPIO_Init(GPIOE, &gpioInitStruct);
+    LL_GPIO_Init(LED_PORT, &gpioInitStruct);
+}
+
+void initDisplay()
+{
+    ENABLE_CLOCK_DISPLAY;
+
+    LL_GPIO_InitTypeDef gpioInitStruct = {
+        .Pin = DISPLAY_BACKLIGHT_PIN,
+        .Mode = LL_GPIO_MODE_OUTPUT,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
+    };
+
+    LL_GPIO_Init(DISPLAY_PORT, &gpioInitStruct);
+    LL_GPIO_SetOutputPin(DISPLAY_PORT, DISPLAY_BACKLIGHT_PIN);
 }
 
 int main()
 {
     LL_RCC_DeInit();
     initLeds();
+    initDisplay();
 
     for (;;) {
         for (size_t i = 0; i < LEDS_N; i++) {
             uint32_t currentLed = LEDS[i];
 
-            LL_GPIO_SetOutputPin(GPIOE, currentLed);
+            LL_GPIO_SetOutputPin(LED_PORT, currentLed);
             delay(100000);
-            LL_GPIO_ResetOutputPin(GPIOE, currentLed);
+            LL_GPIO_ResetOutputPin(LED_PORT, currentLed);
             delay(100000);
         }
     }
