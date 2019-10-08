@@ -3,11 +3,6 @@
 
 #include <stdio.h>
 
-void delay(uint32_t us)
-{
-    while (us--) {
-        asm volatile("nop");
-    }
-}
+void delay(uint32_t us);
 
 #endif // _UTILS_H
