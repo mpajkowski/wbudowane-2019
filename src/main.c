@@ -1,6 +1,7 @@
 #include "display.h"
 #include "led.h"
 #include "utils.h"
+#include <string.h>
 
 int main()
 {
@@ -8,8 +9,11 @@ int main()
     ledInit();
     displayInit();
 
-    displayTest();
-    led1ToggleCycle();
+    const char lorem[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vehicula "
+                         "sodales nisl eu aliquet.";
+
+    displayClearBuf();
+    displayPuts(0, 0, lorem, 0);
 
     return 0;
 }

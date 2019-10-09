@@ -1,4 +1,8 @@
 #include "display.h"
+#include "font.h"
+#include <string.h>
+
+uint8_t DISPLAY_BUFFER[DISPLAY_BUFSIZE] = {};
 
 static void spiSend(uint8_t byte)
 {
@@ -80,14 +84,54 @@ void displayInit()
     spiInit();
 
     displayReset();
+
+    // TODO fix magic numbers
     displaySendCommand(0x21);
+    displaySendCommand(0xBF);
+    displaySendCommand(0x04);
     displaySendCommand(0x14);
-    displaySendCommand(0x80 | 0x2f);
     displaySendCommand(0x20);
-    displaySendCommand(0x0c);
+    displaySendCommand(0x0C);
 }
 
-void displayTest()
+static void newline(uint8_t** buf, uint8_t* carretPos)
 {
-    displaySendData(logo_mini_mono, sizeof(logo_mini_mono));
+    *buf += DISPLAY_WIDTH - *carretPos * FONT_WIDTH;
+    *carretPos = 0;
+}
+
+void displayPuts(size_t startX, size_t startY, const char* str, uint8_t clearBuf)
+{
+    if (clearBuf) {
+        displayClearBuf();
+    }
+
+    uint8_t carretPos = startX * FONT_WIDTH;
+    uint8_t* buf = &DISPLAY_BUFFER[startY * DISPLAY_WIDTH + carretPos];
+
+    for (size_t i = 0; i < strlen(str); ++i) {
+        uint8_t character = str[i];
+
+        if (character == '\n') {
+            newline(&buf, &carretPos);
+        } else {
+            if (carretPos == DISPLAY_WIDTH / FONT_WIDTH) {
+                newline(&buf, &carretPos);
+            }
+
+            for (size_t j = 0; j < FONT_WIDTH; ++j) {
+                *buf++ = font_ASCII[character - ' '][j];
+            }
+            carretPos++;
+        }
+    }
+
+    *buf++ = 0;
+
+    displaySendData(DISPLAY_BUFFER, DISPLAY_BUFSIZE);
+}
+
+void displayClearBuf()
+{
+    memset(DISPLAY_BUFFER, 0, DISPLAY_BUFSIZE);
 }
