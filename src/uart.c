@@ -1,5 +1,4 @@
 #include "uart.h"
-#include "utils.h"
 #include <stm32f3xx_ll_bus.h>
 #include <stm32f3xx_ll_rcc.h>
 
@@ -18,7 +17,6 @@ void uartInit()
 
     LL_USART_InitTypeDef uartInit = {};
     uartInit.BaudRate = UART_BAUDRATE;
-    uartInit.BaudRate = 9600;
     uartInit.DataWidth = LL_USART_DATAWIDTH_8B;
     uartInit.Parity = LL_USART_PARITY_NONE;
     uartInit.TransferDirection = LL_USART_DIRECTION_TX_RX;
@@ -31,6 +29,9 @@ void uartInit()
     while ((!(LL_USART_IsActiveFlag_TEACK(UART_HANDLE))) ||
            (!(LL_USART_IsActiveFlag_REACK(UART_HANDLE)))) {
     }
+
+    LL_USART_EnableIT_RXNE(UART_HANDLE);
+    NVIC_EnableIRQ(USART1_IRQn);
 }
 
 void uartPutc(char ch)
@@ -45,5 +46,13 @@ void uartPuts(const char* str)
 {
     while (*str) {
         uartPutc(*str++);
+    }
+}
+
+void USART1_IRQHandler()
+{
+    if (LL_USART_IsActiveFlag_RXNE(UART_HANDLE)) {
+        uint8_t ch = LL_USART_ReceiveData8(UART_HANDLE);
+        uartPutc(ch);
     }
 }

@@ -18,14 +18,4 @@ int main()
     uartInit();
 
     led1ToggleCycle();
-
-    while (1) {
-        if (LL_USART_IsActiveFlag_RXNE(UART_HANDLE)) {
-            char c = LL_USART_ReceiveData8(UART_HANDLE);
-
-            uartPutc(c);
-        }
-    }
-
-    return 0;
 }
