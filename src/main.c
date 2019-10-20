@@ -1,14 +1,15 @@
 #include "display.h"
 #include "led.h"
+#include "motion.h"
 #include "uart.h"
 #include "utils.h"
-#include <string.h>
 
 int main()
 {
     LL_RCC_DeInit();
     ledInit();
     displayInit();
+    motionInit();
 
     const char lorem[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vehicula "
                          "sodales nisl eu aliquet.";
