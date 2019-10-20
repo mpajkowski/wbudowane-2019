@@ -108,8 +108,8 @@ void displayPuts(size_t startX, size_t startY, const char* str, uint8_t clearBuf
     uint8_t carretPos = startX * FONT_WIDTH;
     uint8_t* buf = &DISPLAY_BUFFER[startY * DISPLAY_WIDTH + carretPos];
 
-    for (size_t i = 0; i < strlen(str); ++i) {
-        uint8_t character = str[i];
+    while (*str) {
+        uint8_t character = *str++;
 
         if (character == '\n') {
             newline(&buf, &carretPos);
@@ -125,7 +125,7 @@ void displayPuts(size_t startX, size_t startY, const char* str, uint8_t clearBuf
         }
     }
 
-    *buf++ = 0;
+    *buf = 0;
 
     displaySendData(DISPLAY_BUFFER, DISPLAY_BUFSIZE);
 }
