@@ -118,9 +118,9 @@ void displayPuts(size_t startX, size_t startY, const char* str, uint8_t clearBuf
                 newline(&buf, &carretPos);
             }
 
-            for (size_t j = 0; j < FONT_WIDTH; ++j) {
-                *buf++ = font_ASCII[character - ' '][j];
-            }
+            memcpy(buf, font_ASCII[character - ' '], FONT_WIDTH);
+
+            buf += FONT_WIDTH;
             carretPos++;
         }
     }
