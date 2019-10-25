@@ -84,13 +84,13 @@ void displayInit()
     spiInit();
 
     // Init sequence
-    displayReset();                      // reset
-    displaySendCommand(1 << 5 | 1);      // extended command mode
-    displaySendCommand(1 << 7 | 0x36);   // set contrast (vop)
-    displaySendCommand(1 << 2);          // set temperature coefficient
-    displaySendCommand(1 << 4 | 1 << 2); // set bias command
-    displaySendCommand(1 << 5);          // basic command mode
-    displaySendCommand(1 << 3 | 1 << 2); // normal display mode
+    displayReset();                                // reset
+    displaySendCommand(1 << 5 | 1);                // extended command mode
+    displaySendCommand(1 << 7 | DISPLAY_CONTRAST); // set contrast (vop)
+    displaySendCommand(1 << 2);                    // set temperature coefficient
+    displaySendCommand(1 << 4 | 1 << 2);           // set bias command
+    displaySendCommand(1 << 5);                    // basic command mode
+    displaySendCommand(1 << 3 | 1 << 2);           // normal display mode
 }
 
 static void newline(uint8_t** buf, uint8_t* carretPos)
