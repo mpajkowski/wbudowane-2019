@@ -1,13 +1,13 @@
 ///
-///  STM32F3 Discovery (aka. Target) to Nokia 5110 display (aka. Display)
+///  STM32F3 Discovery (aka. Target) to Nokia 5110 display (aka. Display) (external)
 ///
-///  |-------------------|-----|-----|-----|-----|-----|------|-----|-----|
-///  | Display PIN no.   | (1) | (2) | (3) | (4) | (5) | (6)  | (7) | (8) |
-///  |-------------------|-----|-----|-----|-----|-----|------|-----|-----|
-///  | Display PIN fun.  | RST | CE  | DC  | DIN | CLK | VCC  | BL  | GND |
-///  |-------------------|-----|-----|-----|-----|-----|------|-----|-----|
-///  | Target PIN        | PA0 | PA4 | PA1 | PA7 | PA5 | 3.3V | PA2 | GND |
-///  |-------------------|-----|-----|-----|-----|-----|------|-----|-----|
+///  |-------------------|-----|-----|-----|-----|-----|-----|-----|-----|
+///  | Display PIN no.   | (1) | (2) | (3) | (4) | (5) | (6) | (7) | (8) |
+///  |-------------------|-----|-----|-----|-----|-----|-----|-----|-----|
+///  | Display PIN fun.  | RST | CE  | DC  | DIN | CLK | VCC | BL  | GND |
+///  |-------------------|-----|-----|-----|-----|-----|-----|-----|-----|
+///  | Target PIN        | PA0 | PA4 | PA1 | PA7 | PA5 | +3V | PA2 | GND |
+///  |-------------------|-----|-----|-----|-----|-----|-----|-----|-----|
 ///
 ///  SPI notes:
 ///      * (2) CE -> PA4 - SPI1_NSS
@@ -39,6 +39,8 @@
 #define DISPLAY_BL LL_GPIO_PIN_2
 
 #define DISPLAY_ALL DISPLAY_RST | DISPLAY_CE | DISPLAY_DC | DISPLAY_DIN | DISPLAY_CLK | DISPLAY_BL
+
+#define DISPLAY_CONTRAST 0x36
 
 #define DISPLAY_WIDTH 84
 #define DISPLAY_HEIGHT 48

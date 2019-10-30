@@ -5,6 +5,8 @@
 
 void motionInit()
 {
+    ENABLE_CLOCK_MOTION_GPIO;
+
     LL_GPIO_InitTypeDef gpio = {
         .Pin = MOTION_STATE,
         .Mode = LL_GPIO_MODE_INPUT,
