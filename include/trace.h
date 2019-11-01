@@ -13,6 +13,8 @@ enum TraceLevel
     TRACE_ERROR,
 };
 
+static char* traceLevelStr[] = { "TRACE_DEBUG", "TRACE_INFO", "TRACE_WARNING", "TRACE_ERROR" };
+
 #ifndef TRACE_LEVEL
 #define TRACE_LEVEL TRACE_DEBUG
 #endif
@@ -30,7 +32,8 @@ static inline void printTrace(const char* file, int line, int level, const char*
         va_list args;
         va_start(args, trace);
 
-        snprintf(buf, TRACE_BUF_SIZE, "%s:%d: %s\r\n", file, line, trace);
+        snprintf(
+          buf, TRACE_BUF_SIZE, "%s:%d\t[%s]\t%s\r\n", file, line, traceLevelStr[level], trace);
         vsnprintf(buf, TRACE_BUF_SIZE, buf, args);
 
         va_end(args);
