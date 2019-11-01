@@ -23,28 +23,32 @@ static char* traceLevelStr[] = { "TRACE_DEBUG", "TRACE_INFO", "TRACE_WARNING", "
 #define TRACE_BUF_SIZE 100
 #endif
 
-static inline void printTrace(const char* file, int line, int level, const char* trace, ...)
+static void printTrace(const char* file, int line, int level, const char* trace, ...)
 {
-    static char buf[TRACE_BUF_SIZE];
+    static char outBuf[TRACE_BUF_SIZE];
+    static char* formatBuf = outBuf + TRACE_BUF_SIZE / 2;
 
     if (level >= TRACE_LEVEL) {
-
         va_list args;
         va_start(args, trace);
-
-        snprintf(
-          buf, TRACE_BUF_SIZE, "%s:%d\t[%s]\t%s\r\n", file, line, traceLevelStr[level], trace);
-        vsnprintf(buf, TRACE_BUF_SIZE, buf, args);
-
+        vsnprintf(formatBuf, TRACE_BUF_SIZE, trace, args);
         va_end(args);
 
-        serialPuts(buf);
+        snprintf(outBuf,
+                 TRACE_BUF_SIZE,
+                 "%s:%d\t[%s]\t%s\r\n",
+                 file,
+                 line,
+                 traceLevelStr[level],
+                 formatBuf);
+
+        serialPuts(outBuf);
     }
 }
 
-#define TRACE_DEBUG(STR, args...) printTrace(__FILE__, __LINE__, TRACE_DEBUG, STR, ##args)
-#define TRACE_INFO(STR, args...) printTrace(__FILE__, __LINE__, TRACE_INFO, STR, ##args)
-#define TRACE_WARNING(STR, args...) printTrace(__FILE__, __LINE__, TRACE_WARNING, STR, ##args)
-#define TRACE_ERROR(STR, args...) printTrace(__FILE__, __LINE__, TRACE_ERROR, STR, ##args)
+#define TRACE_DEBUG(...) printTrace(__FILE__, __LINE__, TRACE_DEBUG, __VA_ARGS__)
+#define TRACE_INFO(...) printTrace(__FILE__, __LINE__, TRACE_INFO, __VA_ARGS__)
+#define TRACE_WARNING(...) printTrace(__FILE__, __LINE__, TRACE_WARNING, __VA_ARGS__)
+#define TRACE_ERROR(...) printTrace(__FILE__, __LINE__, TRACE_ERROR, __VA_ARGS__)
 
 #endif
