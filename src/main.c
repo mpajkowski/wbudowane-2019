@@ -6,7 +6,6 @@
 
 int main()
 {
-    LL_RCC_DeInit();
     ledInit();
     displayInit();
     motionInit();
