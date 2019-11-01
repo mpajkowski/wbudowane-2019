@@ -32,8 +32,10 @@ void serialInit()
            (!(LL_USART_IsActiveFlag_REACK(SERIAL_UART)))) {
     }
 
+#if UART_ECHO
     LL_USART_EnableIT_RXNE(SERIAL_UART);
     NVIC_EnableIRQ(USART1_IRQn);
+#endif
 }
 
 void serialPutc(char ch)
@@ -51,6 +53,7 @@ void serialPuts(const char* str)
     }
 }
 
+#if UART_ECHO
 void USART1_IRQHandler()
 {
     if (LL_USART_IsActiveFlag_RXNE(SERIAL_UART)) {
@@ -58,3 +61,4 @@ void USART1_IRQHandler()
         serialPutc(ch);
     }
 }
+#endif
