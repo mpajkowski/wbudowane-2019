@@ -3,6 +3,7 @@
 #include "motion.h"
 #include "serial.h"
 #include "utils.h"
+#include "button.h"
 
 int main()
 {
@@ -10,6 +11,7 @@ int main()
     displayInit();
     motionInit();
     serialInit();
+    buttonInit();
 
     const char lorem[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vehicula "
                          "sodales nisl eu aliquet.";
