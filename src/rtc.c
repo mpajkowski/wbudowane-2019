@@ -46,13 +46,13 @@ void RTCinit(){
 
 void setTimeStampBuffer(char *time_buffer){
     volatile uint32_t seconds = LL_RTC_TIME_GetSecond(RTC);
-    volatile uint32_t seconds_bin = __LL_RTC_CONVERT_BCD2BIN(seconds);
+    volatile unsigned short seconds_bin = __LL_RTC_CONVERT_BCD2BIN(seconds);
 
     volatile uint32_t minutes = LL_RTC_TIME_GetMinute(RTC);
-    volatile uint32_t minutes_bin = __LL_RTC_CONVERT_BCD2BIN(minutes);
+    volatile unsigned short minutes_bin = __LL_RTC_CONVERT_BCD2BIN(minutes);
 
     volatile uint32_t hours = LL_RTC_TIME_GetHour(RTC);
-    volatile uint32_t hours_bin = __LL_RTC_CONVERT_BCD2BIN(hours);
+    volatile unsigned short hours_bin = __LL_RTC_CONVERT_BCD2BIN(hours);
 
-    sprintf(time_buffer, "%d: %d : %d", hours_bin, minutes_bin, seconds_bin);
+    sprintf(time_buffer, "%hu:%hu:%hu", hours_bin, minutes_bin, seconds_bin);
 }
