@@ -13,6 +13,8 @@ int main()
     motionInit();
     serialInit();
     buttonInit();
+    
+    HSEinit();
     LSIinit();
     RTCinit();
 
