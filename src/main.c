@@ -4,6 +4,7 @@
 #include "serial.h"
 #include "utils.h"
 #include "button.h"
+#include "rtc.h"
 
 int main()
 {
@@ -12,12 +13,20 @@ int main()
     motionInit();
     serialInit();
     buttonInit();
+    LSIinit();
+    RTCinit();
 
     const char lorem[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vehicula "
                          "sodales nisl eu aliquet.";
 
     displayClearBuf();
     displayPuts(0, 0, lorem, 0);
-
     led1ToggleCycle();
+
+    char time_buffer[50] = {0};
+
+    while(1){
+    setTimeStampBuffer(time_buffer);
+    displayPuts(0, 0, time_buffer, 1);
+    }
 }
