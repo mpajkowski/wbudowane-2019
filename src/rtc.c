@@ -1,5 +1,15 @@
 #include "rtc.h"
 
+void HSEinit(){
+    LL_RCC_HSE_Enable();
+    int HSEStartUpStatus = LL_RCC_HSE_IsReady();
+
+    while(HSEStartUpStatus != 1){
+        HSEStartUpStatus = LL_RCC_HSE_IsReady();
+    }
+    // if(LL_RCC_HSE_IsReady()){}
+}
+
 void LSIinit(){
     LL_RCC_LSI_Enable();
 
@@ -34,6 +44,10 @@ void RTCinit(){
     while(LL_RCC_IsEnabledRTC() != 1){
         rtc_error = LL_RCC_IsEnabledRTC();
     }
+
+    LL_RTC_SetHourFormat(RTC, LL_RTC_HOURFORMAT_24HOUR);
+    LL_RTC_SetAsynchPrescaler(RTC, RTC_ASYNCH_PREDIV_LSI);
+    LL_RTC_SetSynchPrescaler(RTC, RTC_SYNCH_PREDIV_LSI);
 
     if (LL_RTC_ExitInitMode(RTC) != SUCCESS)   
     {
