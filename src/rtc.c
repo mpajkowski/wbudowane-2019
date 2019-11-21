@@ -4,7 +4,7 @@ void HSEinit(){
     LL_RCC_HSE_Enable();
     int HSEStartUpStatus = LL_RCC_HSE_IsReady();
 
-    while(HSEStartUpStatus != 1){
+    while(HSEStartUpStatus == RESET){
         HSEStartUpStatus = LL_RCC_HSE_IsReady();
     }
     // if(LL_RCC_HSE_IsReady()){}
@@ -25,31 +25,49 @@ void RTCinit(){
     LL_PWR_EnableBkUpAccess();
 
     // If LSI not set, set it as RTC clock source
-    if (LL_RCC_GetRTCClockSource() != LL_RCC_RTC_CLKSOURCE_LSI)
-    {
-        LL_RCC_ForceBackupDomainReset();
-        LL_RCC_ReleaseBackupDomainReset();
-        LL_RCC_SetRTCClockSource(LL_RCC_RTC_CLKSOURCE_LSI);
-    }
+    // if (LL_RCC_GetRTCClockSource() != LL_RCC_RTC_CLKSOURCE_LSI)
+    // {
+    //     LL_RCC_ForceBackupDomainReset();
+    //     LL_RCC_ReleaseBackupDomainReset();
+    //     LL_RCC_SetRTCClockSource(LL_RCC_RTC_CLKSOURCE_LSI);
+    // }
+
+    LL_RCC_ForceBackupDomainReset();
+    LL_RCC_ReleaseBackupDomainReset();
+
+    LL_RCC_SetRTCClockSource(LL_RCC_RTC_CLKSOURCE_HSE_DIV32);
 
     LL_RCC_EnableRTC();
+    
     LL_RTC_DisableWriteProtection(RTC);
-
     if (LL_RTC_EnterInitMode(RTC) != SUCCESS)   
     {
        return;
     }
 
     int rtc_error = LL_RCC_IsEnabledRTC();
-    while(LL_RCC_IsEnabledRTC() != 1){
+    while(rtc_error != 1){
         rtc_error = LL_RCC_IsEnabledRTC();
     }
 
     LL_RTC_SetHourFormat(RTC, LL_RTC_HOURFORMAT_24HOUR);
-    LL_RTC_SetAsynchPrescaler(RTC, RTC_ASYNCH_PREDIV_LSI);
-    LL_RTC_SetSynchPrescaler(RTC, RTC_SYNCH_PREDIV_LSI);
 
-    if (LL_RTC_ExitInitMode(RTC) != SUCCESS)   
+    uint32_t clock_src = LL_RCC_GetRTCClockSource();
+
+    if(clock_src == LL_RCC_RTC_CLKSOURCE_HSE_DIV32){
+        LL_RTC_SetAsynchPrescaler(RTC, RTC_ASYNCH_PREDIV_HSE);
+        LL_RTC_SetSynchPrescaler(RTC, RTC_SYNCH_PREDIV_HSE);
+    }
+    else if(clock_src == LL_RCC_RTC_CLKSOURCE_LSI){
+        LL_RTC_SetAsynchPrescaler(RTC, RTC_ASYNCH_PREDIV_LSI);
+        LL_RTC_SetSynchPrescaler(RTC, RTC_SYNCH_PREDIV_LSI);
+    }
+    else{
+        LL_RTC_EnableWriteProtection(RTC);
+        return;
+    }
+
+    if (LL_RTC_ExitInitMode(RTC) != 1)   
     {
          LL_RTC_EnableWriteProtection(RTC);
          return;
