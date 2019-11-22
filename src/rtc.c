@@ -24,14 +24,6 @@ void RTCinit(){
     LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
     LL_PWR_EnableBkUpAccess();
 
-    // If LSI not set, set it as RTC clock source
-    // if (LL_RCC_GetRTCClockSource() != LL_RCC_RTC_CLKSOURCE_LSI)
-    // {
-    //     LL_RCC_ForceBackupDomainReset();
-    //     LL_RCC_ReleaseBackupDomainReset();
-    //     LL_RCC_SetRTCClockSource(LL_RCC_RTC_CLKSOURCE_LSI);
-    // }
-
     LL_RCC_ForceBackupDomainReset();
     LL_RCC_ReleaseBackupDomainReset();
 
@@ -76,7 +68,7 @@ void RTCinit(){
     LL_RTC_EnableWriteProtection(RTC);
 }
 
-void setTimeStampBuffer(char *time_buffer){
+void getTimeStampBuffer(char *time_buffer){
     volatile uint32_t seconds = LL_RTC_TIME_GetSecond(RTC);
     volatile unsigned short seconds_bin = __LL_RTC_CONVERT_BCD2BIN(seconds);
 
@@ -87,4 +79,17 @@ void setTimeStampBuffer(char *time_buffer){
     volatile unsigned short hours_bin = __LL_RTC_CONVERT_BCD2BIN(hours);
 
     sprintf(time_buffer, "%hu:%hu:%hu", hours_bin, minutes_bin, seconds_bin);
+}
+
+void getDateStampBuffer(char *time_buffer){
+    volatile uint32_t days = LL_RTC_DATE_GetDay(RTC);
+    volatile unsigned short days_bin = __LL_RTC_CONVERT_BCD2BIN(days);
+
+    volatile uint32_t months = LL_RTC_DATE_GetMonth(RTC);
+    volatile unsigned short months_bin = __LL_RTC_CONVERT_BCD2BIN(months);
+
+    volatile uint32_t years = LL_RTC_DATE_GetYear(RTC);
+    volatile unsigned short years_bin = __LL_RTC_CONVERT_BCD2BIN(years);
+
+    sprintf(time_buffer, "%hu.%hu.%hu", days_bin, months_bin, years_bin);
 }
