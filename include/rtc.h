@@ -17,4 +17,7 @@ void LSIinit();
 void RTCinit();
 void getTimeStampBuffer(char *time_buffer);
 void getDateStampBuffer(char *time_buffer);
+void setTime(int seconds, int minutes, int hours);
+void setDate(uint8_t weekDay, int days, int months, int years);
+
 #endif //_RTC_H
