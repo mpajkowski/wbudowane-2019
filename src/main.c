@@ -28,7 +28,7 @@ int main()
     char time_buffer[50] = {0};
 
     while(1){
-    setTimeStampBuffer(time_buffer);
+    getDateStampBuffer(time_buffer);
     displayPuts(0, 0, time_buffer, 1);
     }
 }
