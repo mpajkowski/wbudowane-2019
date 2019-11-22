@@ -15,6 +15,6 @@
 void HSEinit();
 void LSIinit();
 void RTCinit();
-void setTimeStampBuffer(char *time_buffer);
-
+void getTimeStampBuffer(char *time_buffer);
+void getDateStampBuffer(char *time_buffer);
 #endif //_RTC_H
