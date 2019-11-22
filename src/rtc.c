@@ -56,16 +56,19 @@ void RTCinit(){
     }
     else{
         LL_RTC_EnableWriteProtection(RTC);
+        LL_PWR_DisableBkUpAccess();
         return;
     }
 
     if (LL_RTC_ExitInitMode(RTC) != 1)   
     {
          LL_RTC_EnableWriteProtection(RTC);
+         LL_PWR_DisableBkUpAccess();
          return;
     }
 
     LL_RTC_EnableWriteProtection(RTC);
+    LL_PWR_DisableBkUpAccess();
 }
 
 void getTimeStampBuffer(char *time_buffer){
@@ -90,6 +93,72 @@ void getDateStampBuffer(char *time_buffer){
 
     volatile uint32_t years = LL_RTC_DATE_GetYear(RTC);
     volatile unsigned short years_bin = __LL_RTC_CONVERT_BCD2BIN(years);
-
+    years_bin += 2000;
     sprintf(time_buffer, "%hu.%hu.%hu", days_bin, months_bin, years_bin);
+}
+
+void setTime(int seconds, int minutes, int hours){
+    LL_PWR_EnableBkUpAccess();    
+    LL_RTC_DisableWriteProtection(RTC);
+    if (LL_RTC_EnterInitMode(RTC) != SUCCESS)   
+    {
+       return;
+    }
+
+    int rtc_error = LL_RCC_IsEnabledRTC();
+    while(rtc_error != 1){
+        rtc_error = LL_RCC_IsEnabledRTC();
+    }
+
+    LL_RTC_TimeTypeDef initTime = {
+        .TimeFormat = LL_RTC_HOURFORMAT_24HOUR,
+        .Hours = hours,
+        .Minutes = minutes,
+        .Seconds = seconds
+        };
+
+    LL_RTC_TIME_Init(RTC, LL_RTC_FORMAT_BIN, &initTime);
+    
+    if (LL_RTC_ExitInitMode(RTC) != 1)   
+    {
+         LL_RTC_EnableWriteProtection(RTC);
+         LL_PWR_DisableBkUpAccess();
+         return;
+    }
+
+    LL_RTC_EnableWriteProtection(RTC);
+    LL_PWR_DisableBkUpAccess();
+}
+
+void setDate(uint8_t weekDay, int days, int months, int years){
+    LL_PWR_EnableBkUpAccess();    
+    LL_RTC_DisableWriteProtection(RTC);
+    if (LL_RTC_EnterInitMode(RTC) != SUCCESS)   
+    {
+       return;
+    }
+
+    int rtc_error = LL_RCC_IsEnabledRTC();
+    while(rtc_error != 1){
+        rtc_error = LL_RCC_IsEnabledRTC();
+    }
+
+    LL_RTC_DateTypeDef initDate = {
+        .WeekDay = weekDay,
+        .Month = months,
+        .Day = days,
+        .Year = years
+        };
+
+    LL_RTC_DATE_Init(RTC, LL_RTC_FORMAT_BIN, &initDate);
+    
+    if (LL_RTC_ExitInitMode(RTC) != 1)   
+    {
+         LL_RTC_EnableWriteProtection(RTC);
+         LL_PWR_DisableBkUpAccess();
+         return;
+    }
+
+    LL_RTC_EnableWriteProtection(RTC);
+    LL_PWR_DisableBkUpAccess();
 }
