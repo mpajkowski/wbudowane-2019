@@ -1,27 +1,30 @@
 #include "rtc.h"
 // https://usermanual.wiki/Document/DM00025071.756701677/html#pfa
 
-void HSEinit(){
+void HSEinit()
+{
     LL_RCC_HSE_Enable();
     int HSEStartUpStatus = LL_RCC_HSE_IsReady();
 
-    while(HSEStartUpStatus == RESET){
+    while (HSEStartUpStatus == RESET) {
         HSEStartUpStatus = LL_RCC_HSE_IsReady();
     }
     // if(LL_RCC_HSE_IsReady()){}
 }
 
-void LSIinit(){
+void LSIinit()
+{
     LL_RCC_LSI_Enable();
 
     volatile u_int32_t is_LSI_ready = LL_RCC_LSI_IsReady();
-    while(is_LSI_ready != 1){ 
+    while (is_LSI_ready != 1) {
         is_LSI_ready = LL_RCC_LSI_IsReady();
         // wait unitil LSI is ready
     }
 }
 
-void RTCinit(){
+void RTCinit()
+{
     LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
     LL_PWR_EnableBkUpAccess();
 
@@ -31,15 +34,14 @@ void RTCinit(){
     LL_RCC_SetRTCClockSource(LL_RCC_RTC_CLKSOURCE_HSE_DIV32);
 
     LL_RCC_EnableRTC();
-    
+
     LL_RTC_DisableWriteProtection(RTC);
-    if (LL_RTC_EnterInitMode(RTC) != SUCCESS)   
-    {
-       return;
+    if (LL_RTC_EnterInitMode(RTC) != SUCCESS) {
+        return;
     }
 
     int rtc_error = LL_RCC_IsEnabledRTC();
-    while(rtc_error != 1){
+    while (rtc_error != 1) {
         rtc_error = LL_RCC_IsEnabledRTC();
     }
 
@@ -47,32 +49,30 @@ void RTCinit(){
 
     uint32_t clock_src = LL_RCC_GetRTCClockSource();
 
-    if(clock_src == LL_RCC_RTC_CLKSOURCE_HSE_DIV32){
+    if (clock_src == LL_RCC_RTC_CLKSOURCE_HSE_DIV32) {
         LL_RTC_SetAsynchPrescaler(RTC, RTC_ASYNCH_PREDIV_HSE);
         LL_RTC_SetSynchPrescaler(RTC, RTC_SYNCH_PREDIV_HSE);
-    }
-    else if(clock_src == LL_RCC_RTC_CLKSOURCE_LSI){
+    } else if (clock_src == LL_RCC_RTC_CLKSOURCE_LSI) {
         LL_RTC_SetAsynchPrescaler(RTC, RTC_ASYNCH_PREDIV_LSI);
         LL_RTC_SetSynchPrescaler(RTC, RTC_SYNCH_PREDIV_LSI);
-    }
-    else{
+    } else {
         LL_RTC_EnableWriteProtection(RTC);
         LL_PWR_DisableBkUpAccess();
         return;
     }
 
-    if (LL_RTC_ExitInitMode(RTC) != 1)   
-    {
-         LL_RTC_EnableWriteProtection(RTC);
-         LL_PWR_DisableBkUpAccess();
-         return;
+    if (LL_RTC_ExitInitMode(RTC) != 1) {
+        LL_RTC_EnableWriteProtection(RTC);
+        LL_PWR_DisableBkUpAccess();
+        return;
     }
 
     LL_RTC_EnableWriteProtection(RTC);
     LL_PWR_DisableBkUpAccess();
 }
 
-void getTimeStampBuffer(char *time_buffer){
+void getTimeStampBuffer(char* time_buffer)
+{
     volatile uint32_t seconds = LL_RTC_TIME_GetSecond(RTC);
     volatile unsigned short seconds_bin = __LL_RTC_CONVERT_BCD2BIN(seconds);
 
@@ -85,7 +85,8 @@ void getTimeStampBuffer(char *time_buffer){
     sprintf(time_buffer, "%hu:%hu:%hu", hours_bin, minutes_bin, seconds_bin);
 }
 
-void getDateStampBuffer(char *time_buffer){
+void getDateStampBuffer(char* time_buffer)
+{
     volatile uint32_t days = LL_RTC_DATE_GetDay(RTC);
     volatile unsigned short days_bin = __LL_RTC_CONVERT_BCD2BIN(days);
 
@@ -98,82 +99,74 @@ void getDateStampBuffer(char *time_buffer){
     sprintf(time_buffer, "%hu.%hu.%hu", days_bin, months_bin, years_bin);
 }
 
-void setTime(int seconds, int minutes, int hours){
-    LL_PWR_EnableBkUpAccess();    
+void setTime(int seconds, int minutes, int hours)
+{
+    LL_PWR_EnableBkUpAccess();
     LL_RTC_DisableWriteProtection(RTC);
-    if (LL_RTC_EnterInitMode(RTC) != SUCCESS)   
-    {
-       return;
+    if (LL_RTC_EnterInitMode(RTC) != SUCCESS) {
+        return;
     }
 
     int rtc_error = LL_RCC_IsEnabledRTC();
-    while(rtc_error != 1){
+    while (rtc_error != 1) {
         rtc_error = LL_RCC_IsEnabledRTC();
     }
 
-    LL_RTC_TimeTypeDef initTime = {
-        .TimeFormat = LL_RTC_HOURFORMAT_24HOUR,
-        .Hours = hours,
-        .Minutes = minutes,
-        .Seconds = seconds
-        };
+    LL_RTC_TimeTypeDef initTime = { .TimeFormat = LL_RTC_HOURFORMAT_24HOUR,
+                                    .Hours = hours,
+                                    .Minutes = minutes,
+                                    .Seconds = seconds };
 
     LL_RTC_TIME_Init(RTC, LL_RTC_FORMAT_BIN, &initTime);
-    
-    if (LL_RTC_ExitInitMode(RTC) != 1)   
-    {
-         LL_RTC_EnableWriteProtection(RTC);
-         LL_PWR_DisableBkUpAccess();
-         return;
+
+    if (LL_RTC_ExitInitMode(RTC) != 1) {
+        LL_RTC_EnableWriteProtection(RTC);
+        LL_PWR_DisableBkUpAccess();
+        return;
     }
 
     LL_RTC_EnableWriteProtection(RTC);
     LL_PWR_DisableBkUpAccess();
 }
 
-void setDate(uint8_t weekDay, int days, int months, int years){
-    LL_PWR_EnableBkUpAccess();    
+void setDate(uint8_t weekDay, int days, int months, int years)
+{
+    LL_PWR_EnableBkUpAccess();
     LL_RTC_DisableWriteProtection(RTC);
-    if (LL_RTC_EnterInitMode(RTC) != SUCCESS)   
-    {
-       return;
+    if (LL_RTC_EnterInitMode(RTC) != SUCCESS) {
+        return;
     }
 
     int rtc_error = LL_RCC_IsEnabledRTC();
-    while(rtc_error != 1){
+    while (rtc_error != 1) {
         rtc_error = LL_RCC_IsEnabledRTC();
     }
 
     LL_RTC_DateTypeDef initDate = {
-        .WeekDay = weekDay,
-        .Month = months,
-        .Day = days,
-        .Year = years
-        };
+        .WeekDay = weekDay, .Month = months, .Day = days, .Year = years
+    };
 
     LL_RTC_DATE_Init(RTC, LL_RTC_FORMAT_BIN, &initDate);
-    
-    if (LL_RTC_ExitInitMode(RTC) != 1)   
-    {
-         LL_RTC_EnableWriteProtection(RTC);
-         LL_PWR_DisableBkUpAccess();
-         return;
+
+    if (LL_RTC_ExitInitMode(RTC) != 1) {
+        LL_RTC_EnableWriteProtection(RTC);
+        LL_PWR_DisableBkUpAccess();
+        return;
     }
 
     LL_RTC_EnableWriteProtection(RTC);
     LL_PWR_DisableBkUpAccess();
 }
 
-void setOneSecondAlarm(){
+void setOneSecondAlarm()
+{
     LL_PWR_EnableBkUpAccess();
     LL_RTC_DisableWriteProtection(RTC);
     LL_RTC_ALMA_Disable(RTC);
-    while(!LL_RTC_IsActiveFlag_ALRAW(RTC))
+    while (!LL_RTC_IsActiveFlag_ALRAW(RTC))
         ;
 
-    LL_RTC_AlarmTypeDef secondsAlarm = {
-        .AlarmMask = LL_RTC_ALMA_MASK_ALL
-    };
+    LL_RTC_AlarmTypeDef secondsAlarm = { .AlarmMask = LL_RTC_ALMA_MASK_ALL };
     ErrorStatus alarmInitError = LL_RTC_ALMA_Init(RTC, LL_RTC_HOURFORMAT_24HOUR, &secondsAlarm);
     LL_RTC_DisableWriteProtection(RTC);
     LL_RTC_ALMA_Enable(RTC);
@@ -181,20 +174,33 @@ void setOneSecondAlarm(){
     LL_PWR_DisableBkUpAccess();
 }
 
-void enableAlarmAInterrupt(){
-    LL_PWR_EnableBkUpAccess();  
+void enableAlarmAInterrupt()
+{
+    LL_PWR_EnableBkUpAccess();
 
     LL_RTC_DisableWriteProtection(RTC);
-        LL_RTC_EnableIT_ALRA(RTC);
+    LL_RTC_EnableIT_ALRA(RTC);
     LL_RTC_EnableWriteProtection(RTC);
 
     LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_17);
     LL_EXTI_EnableRisingTrig_0_31(LL_EXTI_LINE_17);
-    
+
     NVIC_SetPriority(RTC_Alarm_IRQn, 0x0F);
     NVIC_EnableIRQ(RTC_Alarm_IRQn);
 }
+int counter = 0;
 
-void RTC_Alarm_IRQHandler(void){
-    led2ToggleCycle();
+void RTC_Alarm_IRQHandler(void)
+{
+    static char time_buffer[50] = {};
+    LL_RTC_DisableWriteProtection(RTC);
+    LL_RTC_ClearFlag_ALRA(RTC);
+    LL_RTC_EnableWriteProtection(RTC);
+
+    LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_17);
+
+    getDateStampBuffer(time_buffer);
+    displayPuts(0, 0, time_buffer, 1);
+    getTimeStampBuffer(time_buffer);
+    displayPuts(0, 1, time_buffer, 0);
 }
