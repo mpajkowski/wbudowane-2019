@@ -23,8 +23,10 @@ int main()
 
     displayClearBuf();
     displayPuts(0, 0, lorem, 0);
-    led1ToggleCycle();
 
+    
+    ledWindMillToggleCycle();
+    
     setTime(15, 5, 4);
     setDate(1, 1, 1, 19);
     setOneSecondAlarm();
