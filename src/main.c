@@ -26,7 +26,7 @@ int main()
     led1ToggleCycle();
 
     setTime(15, 5, 4);
-    setDate(1, 22, 11, 19);
+    setDate(1, 1, 1, 19);
     setOneSecondAlarm();
     enableAlarmAInterrupt();
 }

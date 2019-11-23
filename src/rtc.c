@@ -71,8 +71,9 @@ void RTCinit()
     LL_PWR_DisableBkUpAccess();
 }
 
-void getTimeStampBuffer(char* time_buffer)
+char* getTime()
 {
+    static char time_buffer[9] = {};
     volatile uint32_t seconds = LL_RTC_TIME_GetSecond(RTC);
     volatile unsigned short seconds_bin = __LL_RTC_CONVERT_BCD2BIN(seconds);
 
@@ -82,11 +83,13 @@ void getTimeStampBuffer(char* time_buffer)
     volatile uint32_t hours = LL_RTC_TIME_GetHour(RTC);
     volatile unsigned short hours_bin = __LL_RTC_CONVERT_BCD2BIN(hours);
 
-    sprintf(time_buffer, "%hu:%hu:%hu", hours_bin, minutes_bin, seconds_bin);
+    sprintf(time_buffer, "%02hu:%02hu:%02hu", hours_bin, minutes_bin, seconds_bin);
+    return time_buffer;
 }
 
-void getDateStampBuffer(char* time_buffer)
+char* getDate()
 {
+    static char time_buffer[11] = {};
     volatile uint32_t days = LL_RTC_DATE_GetDay(RTC);
     volatile unsigned short days_bin = __LL_RTC_CONVERT_BCD2BIN(days);
 
@@ -96,7 +99,8 @@ void getDateStampBuffer(char* time_buffer)
     volatile uint32_t years = LL_RTC_DATE_GetYear(RTC);
     volatile unsigned short years_bin = __LL_RTC_CONVERT_BCD2BIN(years);
     years_bin += 2000;
-    sprintf(time_buffer, "%hu.%hu.%hu", days_bin, months_bin, years_bin);
+    sprintf(time_buffer, "%02hu.%02hu.%hu", days_bin, months_bin, years_bin);
+    return time_buffer;
 }
 
 void setTime(int seconds, int minutes, int hours)
@@ -188,19 +192,16 @@ void enableAlarmAInterrupt()
     NVIC_SetPriority(RTC_Alarm_IRQn, 0x0F);
     NVIC_EnableIRQ(RTC_Alarm_IRQn);
 }
-int counter = 0;
 
 void RTC_Alarm_IRQHandler(void)
 {
-    static char time_buffer[50] = {};
+    static char date_time_buffer[20] = {};
     LL_RTC_DisableWriteProtection(RTC);
     LL_RTC_ClearFlag_ALRA(RTC);
     LL_RTC_EnableWriteProtection(RTC);
 
     LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_17);
 
-    getDateStampBuffer(time_buffer);
-    displayPuts(0, 0, time_buffer, 1);
-    getTimeStampBuffer(time_buffer);
-    displayPuts(0, 1, time_buffer, 0);
+    sprintf(date_time_buffer, "%s\n%s", getDate(), getTime());
+    displayPuts(0, 0, date_time_buffer, 1);
 }
