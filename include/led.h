@@ -35,5 +35,13 @@
 void ledInit();
 void led1ToggleCycle();
 void led2ToggleCycle();
+void led3ToggleCycle();
+void led4ToggleCycle();
+void led5ToggleCycle();
+void led6ToggleCycle();
+void led7ToggleCycle();
+void led8ToggleCycle();
+void ledAllToggleCycle();
+void ledWindMillToggleCycle();
 
 #endif
