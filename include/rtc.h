@@ -12,13 +12,13 @@
 #include "stm32f3xx_ll_pwr.h"
 #include <stm32f3xx_ll_bus.h>
 #include <stm32f3xx_ll_exti.h>
-#include "led.h"
+#include "display.h"
 
 void HSEinit();
 void LSIinit();
 void RTCinit();
-void getTimeStampBuffer(char *time_buffer);
-void getDateStampBuffer(char *time_buffer);
+char* getTime();
+char* getDate();
 void setTime(int seconds, int minutes, int hours);
 void setDate(uint8_t weekDay, int days, int months, int years);
 void setOneSecondAlarm();
