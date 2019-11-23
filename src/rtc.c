@@ -1,4 +1,5 @@
 #include "rtc.h"
+// https://usermanual.wiki/Document/DM00025071.756701677/html#pfa
 
 void HSEinit(){
     LL_RCC_HSE_Enable();
@@ -161,4 +162,39 @@ void setDate(uint8_t weekDay, int days, int months, int years){
 
     LL_RTC_EnableWriteProtection(RTC);
     LL_PWR_DisableBkUpAccess();
+}
+
+void setOneSecondAlarm(){
+    LL_PWR_EnableBkUpAccess();
+    LL_RTC_DisableWriteProtection(RTC);
+    LL_RTC_ALMA_Disable(RTC);
+    while(!LL_RTC_IsActiveFlag_ALRAW(RTC))
+        ;
+
+    LL_RTC_AlarmTypeDef secondsAlarm = {
+        .AlarmMask = LL_RTC_ALMA_MASK_ALL
+    };
+    ErrorStatus alarmInitError = LL_RTC_ALMA_Init(RTC, LL_RTC_HOURFORMAT_24HOUR, &secondsAlarm);
+    LL_RTC_DisableWriteProtection(RTC);
+    LL_RTC_ALMA_Enable(RTC);
+    LL_RTC_EnableWriteProtection(RTC);
+    LL_PWR_DisableBkUpAccess();
+}
+
+void enableAlarmAInterrupt(){
+    LL_PWR_EnableBkUpAccess();  
+
+    LL_RTC_DisableWriteProtection(RTC);
+        LL_RTC_EnableIT_ALRA(RTC);
+    LL_RTC_EnableWriteProtection(RTC);
+
+    LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_17);
+    LL_EXTI_EnableRisingTrig_0_31(LL_EXTI_LINE_17);
+    
+    NVIC_SetPriority(RTC_Alarm_IRQn, 0x0F);
+    NVIC_EnableIRQ(RTC_Alarm_IRQn);
+}
+
+void RTC_Alarm_IRQHandler(void){
+    led2ToggleCycle();
 }
