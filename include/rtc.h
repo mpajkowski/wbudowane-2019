@@ -11,6 +11,8 @@
 #include <stm32f3xx_ll_rcc.h>
 #include "stm32f3xx_ll_pwr.h"
 #include <stm32f3xx_ll_bus.h>
+#include <stm32f3xx_ll_exti.h>
+#include "led.h"
 
 void HSEinit();
 void LSIinit();
@@ -19,5 +21,8 @@ void getTimeStampBuffer(char *time_buffer);
 void getDateStampBuffer(char *time_buffer);
 void setTime(int seconds, int minutes, int hours);
 void setDate(uint8_t weekDay, int days, int months, int years);
+void setOneSecondAlarm();
+void RTC_Alarm_IRQHandler(void);
+void enableAlarmAInterrupt();
 
 #endif //_RTC_H

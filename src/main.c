@@ -29,11 +29,14 @@ int main()
 
     setTime(15, 5, 4);
     setDate(1, 22, 11, 19);
+    setOneSecondAlarm();
+    enableAlarmAInterrupt();
 
     while(1){
         getDateStampBuffer(time_buffer);
         displayPuts(0, 0, time_buffer, 1);
         getTimeStampBuffer(time_buffer);
         displayPuts(0, 1, time_buffer, 0);
+        delay(1000000);
     }
 }

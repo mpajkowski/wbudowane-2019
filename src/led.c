@@ -21,3 +21,10 @@ void led1ToggleCycle()
     LL_GPIO_ResetOutputPin(LED_PORT, LED1_PIN);
     delay(1000000);
 }
+
+void led2ToggleCycle(){
+    LL_GPIO_SetOutputPin(LED_PORT, LED2_PIN);
+    delay(1000000);
+    LL_GPIO_ResetOutputPin(LED_PORT, LED2_PIN);
+    delay(1000000);
+}

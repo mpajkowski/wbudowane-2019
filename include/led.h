@@ -34,5 +34,6 @@
 
 void ledInit();
 void led1ToggleCycle();
+void led2ToggleCycle();
 
 #endif
