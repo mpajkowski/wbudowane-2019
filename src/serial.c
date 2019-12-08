@@ -1,4 +1,6 @@
 #include "serial.h"
+#include "shell.h"
+#include "string.h"
 #include <stm32f3xx_ll_bus.h>
 #include <stm32f3xx_ll_rcc.h>
 
@@ -28,10 +30,12 @@ void serialInit()
     LL_USART_Init(SERIAL_UART, &uartInit);
     LL_USART_Enable(SERIAL_UART);
 
-#if UART_ECHO
+    while ((!(LL_USART_IsActiveFlag_TEACK(SERIAL_UART))) ||
+           (!(LL_USART_IsActiveFlag_REACK(SERIAL_UART)))) {
+    }
+
     LL_USART_EnableIT_RXNE(SERIAL_UART);
     NVIC_EnableIRQ(USART1_IRQn);
-#endif
 }
 
 void serialPutc(char ch)
@@ -49,12 +53,7 @@ void serialPuts(const char* str)
     }
 }
 
-#if UART_ECHO
 void USART1_IRQHandler()
 {
-    if (LL_USART_IsActiveFlag_RXNE(SERIAL_UART)) {
-        uint8_t ch = LL_USART_ReceiveData8(SERIAL_UART);
-        serialPutc(ch);
-    }
+    shellIrqHandler();
 }
-#endif

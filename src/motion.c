@@ -1,8 +1,14 @@
 #include "motion.h"
 #include "led.h"
+#include "rtc.h"
+#include "serial.h"
 #include "trace.h"
 #include "utils.h"
 #include <stm32f3xx_ll_exti.h>
+
+static char* FORMAT_STR = "+DATABEGIN+%s;%s+DATAEND+\r\n";
+#define BUFSIZE 100
+static char buf[BUFSIZE] = {};
 
 void motionInit()
 {
@@ -35,6 +41,12 @@ void EXTI3_IRQHandler()
         if (LL_GPIO_IsInputPinSet(MOTION_PORT, MOTION_STATE)) {
             LL_GPIO_SetOutputPin(LED_PORT, LED_ALL_PINS);
             TRACE_DEBUG("MOTION HIGH! Counter: %d", ++cnt);
+
+            char* date = getDate();
+            char* time = getTime();
+
+            snprintf(buf, BUFSIZE, FORMAT_STR, date ? date : "NULL", time);
+            serialPuts(buf);
         } else {
             LL_GPIO_ResetOutputPin(LED_PORT, LED_ALL_PINS);
             TRACE_DEBUG("MOTION LOW");
