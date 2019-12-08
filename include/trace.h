@@ -36,7 +36,7 @@ static void printTrace(const char* file, int line, int level, const char* trace,
 
         snprintf(outBuf,
                  TRACE_BUF_SIZE,
-                 "%s:%d\t[%s]\t%s\r\n",
+                 "%s:%-5d%-15s%-90s\r\n",
                  file,
                  line,
                  traceLevelStr[level],

@@ -4,6 +4,7 @@
 #include "motion.h"
 #include "rtc.h"
 #include "serial.h"
+#include "string.h"
 #include "utils.h"
 
 int main()
