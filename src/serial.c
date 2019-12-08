@@ -28,10 +28,6 @@ void serialInit()
     LL_USART_Init(SERIAL_UART, &uartInit);
     LL_USART_Enable(SERIAL_UART);
 
-    while ((!(LL_USART_IsActiveFlag_TEACK(SERIAL_UART))) ||
-           (!(LL_USART_IsActiveFlag_REACK(SERIAL_UART)))) {
-    }
-
 #if UART_ECHO
     LL_USART_EnableIT_RXNE(SERIAL_UART);
     NVIC_EnableIRQ(USART1_IRQn);
