@@ -34,12 +34,13 @@ void EXTI3_IRQHandler()
     if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_3)) {
         if (LL_GPIO_IsInputPinSet(MOTION_PORT, MOTION_STATE)) {
             LL_GPIO_SetOutputPin(LED_PORT, LED_ALL_PINS);
-            TRACE_INFO("MOTION HIGH! Counter: %d", ++cnt);
+            TRACE_DEBUG("MOTION HIGH! Counter: %d", ++cnt);
         } else {
             LL_GPIO_ResetOutputPin(LED_PORT, LED_ALL_PINS);
             TRACE_DEBUG("MOTION LOW");
         }
+
+        LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_3);
     }
 
-    LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_3);
 }

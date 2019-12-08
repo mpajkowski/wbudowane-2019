@@ -11,7 +11,7 @@ static void spiSend(uint8_t byte)
 
     LL_SPI_TransmitData8(DISPLAY_SPI, byte);
 
-    while (LL_I2S_IsActiveFlag_BSY(DISPLAY_SPI))
+    while (LL_SPI_IsActiveFlag_BSY(DISPLAY_SPI))
         ;
 }
 
