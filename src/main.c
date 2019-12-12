@@ -1,3 +1,4 @@
+#include "adc.h"
 #include "button.h"
 #include "display.h"
 #include "led.h"
@@ -6,7 +7,6 @@
 #include "serial.h"
 #include "string.h"
 #include "utils.h"
-
 int main()
 {
     delay(10000);
@@ -19,8 +19,6 @@ int main()
     displayClearBuf();
     displayPuts(1, 2, "Initializing...", 1);
 
-    ledWindMillToggleCycle();
-
     rtcInit();
 
     setOneSecondAlarm();
@@ -29,4 +27,11 @@ int main()
 
     setTime(23, 59, 40);
     setDate(1, 1, 1, 19);
+    adcInit();
+    startConversion();
+    while (1) {
+
+        delay(100000);
+        printTemperature();
+    }
 }
