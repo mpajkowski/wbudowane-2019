@@ -27,7 +27,6 @@ function.
 
 void adcInit()
 {
-    pllInit();
     LL_ADC_Disable(ADC1);
     LL_ADC_InitTypeDef adcInit = { .Resolution = LL_ADC_RESOLUTION_12B,
                                    .DataAlignment = LL_ADC_DATA_ALIGN_RIGHT,
@@ -81,5 +80,5 @@ void printTemperature()
     uint16_t result = LL_ADC_REG_ReadConversionData12(ADC1);
     char adc[4] = {};
     sprintf(&adc, "%d", result);
-    displayPuts(0, 5, adc, 1);
+    displayPuts(0, 3, adc, 1);
 }

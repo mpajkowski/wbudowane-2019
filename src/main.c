@@ -29,8 +29,8 @@ int main()
     setDate(1, 1, 1, 19);
     adcInit();
     startConversion();
+    
     while (1) {
-
         delay(100000);
         printTemperature();
     }
