@@ -4,3 +4,12 @@
 .vscode/launch.json
 .vscode/ipch
 .vscode/settings.json
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.pdf
+*.synctex.gz
