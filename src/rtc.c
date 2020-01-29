@@ -1,5 +1,6 @@
 #include "rtc.h"
 #include "trace.h"
+#include "adc.h"
 // https://usermanual.wiki/Document/DM00025071.756701677/html#pfa
 
 void hseInit()
@@ -121,8 +122,8 @@ void RTC_Alarm_IRQHandler(void)
         char* time = getTime();
 
         sprintf(dateTimeBuffer, "%s\n%s", date, time);
-        displayPuts(0, 0, dateTimeBuffer, 0);
-
+        displayPuts(0, 0, dateTimeBuffer, 1);
+        printTemperature();
         TRACE_DEBUG("Date %s, Time: %s", date, time);
     }
 }

@@ -2,9 +2,16 @@
 #define _ADC_H
 
 #include <stm32f3xx_ll_adc.h>
+#include <stm32f3xx_ll_gpio.h>
 #include <stm32f3xx_ll_rcc.h>
 #include <led.h>
 #include <display.h>
-void adcInit();
 
+#define ENABLE_TEMPERATURE_INPUT_GPIO LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA)
+#define TEMPERATURE_PORT GPIOA
+#define TEMPERATURE_PIN LL_GPIO_PIN_3
+
+
+void adcInit();
+void analogInputInit();
 #endif
