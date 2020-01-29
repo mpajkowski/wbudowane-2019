@@ -12,7 +12,7 @@ int main()
     delay(10000);
     ledInit();
     displayInit();
-    motionInit();
+    // motionInit();
     serialInit();
     buttonInit();
 
@@ -27,11 +27,13 @@ int main()
 
     setTime(23, 59, 40);
     setDate(1, 1, 1, 19);
+    analogInputInit();
     adcInit();
     startConversion();
-    
-    while (1) {
-        delay(100000);
-        printTemperature();
-    }
+
+    // while (1) {
+    //     delay(1000000);
+    //     displayClearBuf();
+    //     printTemperature();
+    // }
 }
