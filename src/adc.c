@@ -44,16 +44,19 @@ void adcInit()
     // LL_ADC_SetCommonClock(__LL_ADC_COMMON_INSTANCE(ADC1), LL_ADC_CLOCK_ASYNC_DIV1);
     LL_ADC_SetCommonClock(__LL_ADC_COMMON_INSTANCE(ADC1), LL_ADC_CLOCK_SYNC_PCLK_DIV2);
     
-    LL_ADC_SetCommonPathInternalCh(__LL_ADC_COMMON_INSTANCE(ADC1), LL_ADC_PATH_INTERNAL_TEMPSENSOR);
-    LL_ADC_CHANNEL_3;
-    
+    LL_ADC_SetCommonPathInternalCh(__LL_ADC_COMMON_INSTANCE(ADC1), LL_ADC_PATH_INTERNAL_NONE);
+    LL_ADC_CHANNEL_15;
+
     LL_ADC_REG_SetSequencerLength(ADC1, LL_ADC_REG_SEQ_SCAN_DISABLE);
-    LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, LL_ADC_CHANNEL_TEMPSENSOR);
-    LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_TEMPSENSOR, LL_ADC_SAMPLINGTIME_181CYCLES_5);
+    
+    LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, LL_ADC_CHANNEL_4);
+    LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_4, LL_ADC_SAMPLINGTIME_181CYCLES_5);
 
     delay(10000000);
     LL_ADC_REG_SetTriggerSource(ADC1, LL_ADC_REG_TRIG_SOFTWARE);
     LL_ADC_REG_SetContinuousMode(ADC1, LL_ADC_REG_CONV_CONTINUOUS);
+    LL_ADC_REG_SetDMATransfer(ADC1, LL_ADC_REG_DMA_TRANSFER_NONE);
+
     LL_ADC_REG_SetOverrun(ADC1, LL_ADC_REG_OVR_DATA_OVERWRITTEN);
 
     LL_ADC_EnableInternalRegulator(ADC1);
@@ -72,10 +75,6 @@ void adcInit()
     } else {
         led1ToggleCycle();
     }
-    // LL_ADC_StartCalibration(ADC1, LL_ADC_SINGLE_ENDED);
-    // while(LL_ADC_IsCalibrationOnGoing(ADC1)){
-    //      led3ToggleCycle();
-    // }
 }
 
 void startConversion()
@@ -106,7 +105,7 @@ void printTemperature()
     float Vsense = (SupplyVoltage * result)/ADCResolution;// Przeliczenie wartosci zmierzonej na napiecie
     float Temperature = ((Vsense-V25)/Avg_slope)+25;// Obliczenie temperatury
 
-       int32_t temp = __LL_ADC_CALC_TEMPERATURE(3000, result, LL_ADC_RESOLUTION_12B);
+    int32_t temp = __LL_ADC_CALC_TEMPERATURE(3000, result, LL_ADC_RESOLUTION_12B);
 
     static char adc[11] = {};
     snprintf(adc, 11, "Temp: %u", (unsigned int)temp);

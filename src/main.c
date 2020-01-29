@@ -27,6 +27,7 @@ int main()
 
     setTime(23, 59, 40);
     setDate(1, 1, 1, 19);
+    
     analogInputInit();
     adcInit();
     startConversion();
