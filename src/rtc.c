@@ -123,7 +123,7 @@ void RTC_Alarm_IRQHandler(void)
 
         sprintf(dateTimeBuffer, "%s\n%s", date, time);
         displayPuts(0, 0, dateTimeBuffer, 1);
-        printTemperature();
+        printADC();
         TRACE_DEBUG("Date %s, Time: %s", date, time);
     }
 }

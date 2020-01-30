@@ -35,6 +35,6 @@ int main()
     // while (1) {
     //     delay(1000000);
     //     displayClearBuf();
-    //     printTemperature();
+    //     printADC();
     // }
 }

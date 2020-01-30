@@ -1,29 +1,6 @@
 #include "adc.h"
 #include "utils.h"
-/*
-In the STM32F3 Series devices, the ADC clock is derived from the PLL output. It can reach 72 MHz and
-is divided by the following prescalers values programmed inside the RCC: 1, 2, 4, 6, 8,10,12,16, 32,
-64, 128 or 256. It is asynchronous to the AHB clock.
-
-Alternatively, in both STM32F3 Series and STM32G4 Series, the ADC clock is derived from the AHB
-clock of the ADC bus interface, divided by a programmable factor (1, 2 or 4). This programmable
-factor is configured using the CKMODE bit fields in the ADCx_CCR register.
-*/
-
-/*
-
-1. select the ADC clock using the function RCC_ADCCLKConfig()
-2. Enable the ADC interface clock using RCC_AHBPeriphClockCmd();
-3. ADC pins configuration
- Enable the clock for the ADC GPIOs using the following function:
-RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOx, ENABLE);
- Configure these ADC pins in analog mode using GPIO_Init();
-4. Configure the ADC conversion resolution, data alignment, external trigger and edge,
-sequencer lenght and Enable/Disable the continuous mode using the ADC_Init()
-function.
-5. Activate the ADC peripheral using ADC_Cmd() function.
-
-*/
+#include <math.h>
 
 void adcInit()
 {
@@ -41,14 +18,13 @@ void adcInit()
     }
 
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_ADC12);
-    // LL_ADC_SetCommonClock(__LL_ADC_COMMON_INSTANCE(ADC1), LL_ADC_CLOCK_ASYNC_DIV1);
+
     LL_ADC_SetCommonClock(__LL_ADC_COMMON_INSTANCE(ADC1), LL_ADC_CLOCK_SYNC_PCLK_DIV2);
-    
+
     LL_ADC_SetCommonPathInternalCh(__LL_ADC_COMMON_INSTANCE(ADC1), LL_ADC_PATH_INTERNAL_NONE);
-    LL_ADC_CHANNEL_15;
 
     LL_ADC_REG_SetSequencerLength(ADC1, LL_ADC_REG_SEQ_SCAN_DISABLE);
-    
+
     LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, LL_ADC_CHANNEL_4);
     LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_4, LL_ADC_SAMPLINGTIME_181CYCLES_5);
 
@@ -63,10 +39,10 @@ void adcInit()
     delay(1000000);
 
     LL_ADC_StartCalibration(ADC1, LL_ADC_DIFFERENTIAL_ENDED);
-    while ( LL_ADC_IsCalibrationOnGoing(ADC1) ){
-         led3ToggleCycle();
+    while (LL_ADC_IsCalibrationOnGoing(ADC1)) {
+        led3ToggleCycle();
     }
-    
+
     LL_ADC_Enable(ADC1);
     delay(100000);
 
@@ -78,7 +54,7 @@ void adcInit()
 }
 
 void startConversion()
-{ 
+{
     if (LL_ADC_IsEnabled(ADC1) == 1) {
         LL_ADC_REG_StartConversion(ADC1);
     } else {
@@ -93,28 +69,34 @@ void startConversion()
     }
 }
 
-void printTemperature()
+void printADC()
 {
-    const float V25 = 0.76; // [Volts]
-    const float Avg_slope = 0.0025; //[Volts/degree]
-    const float SupplyVoltage = 3.0; // [Volts]
-    const float ADCResolution = 4095.0;
+    const float SupplyVoltage = 3.0f; // [Volts]
+    const float ADCResolution = 4095.0f;
 
     int16_t result = LL_ADC_REG_ReadConversionData12(ADC1);
 
-    float Vsense = (SupplyVoltage * result)/ADCResolution;// Przeliczenie wartosci zmierzonej na napiecie
-    float Temperature = ((Vsense-V25)/Avg_slope)+25;// Obliczenie temperatury
+    float vsense =
+      (SupplyVoltage * result) / ADCResolution; 
 
-    int32_t temp = __LL_ADC_CALC_TEMPERATURE(3000, result, LL_ADC_RESOLUTION_12B);
+    float percent = result / ADCResolution;
+    percent *= 100.0f;
+
+    unsigned int vsenseInt = (unsigned int)vsense;
+    float vsenseFrac = vsense - vsenseInt;
+    int vsenseInt2 = trunc(vsenseFrac * 100);
 
     static char adc[11] = {};
-    snprintf(adc, 11, "Temp: %u", (unsigned int)temp);
+    snprintf(adc, 11, "Volt: %u.%u2", vsenseInt, vsenseInt2);
     displayPuts(0, 3, adc, 0);
     snprintf(adc, 11, "ADC: %u", (unsigned int)result);
     displayPuts(0, 4, adc, 0);
+    snprintf(adc, 11, "Perc: %u%%", (unsigned int)percent);
+    displayPuts(0, 5, adc, 0);
 }
 
-void analogInputInit(){
+void analogInputInit()
+{
     ENABLE_TEMPERATURE_INPUT_GPIO;
 
     LL_GPIO_InitTypeDef gpio = {
