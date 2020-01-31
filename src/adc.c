@@ -4,8 +4,6 @@
 
 void adcInit()
 {
-    // LL_ADC_SetCalibrationFactor(ADC1, LL_ADC_CALIBRA)
-    // LL_ADC_StartCalibration(ADC1);
     LL_ADC_Disable(ADC1);
     LL_ADC_InitTypeDef adcInit = { .Resolution = LL_ADC_RESOLUTION_12B,
                                    .DataAlignment = LL_ADC_DATA_ALIGN_RIGHT,
@@ -25,8 +23,8 @@ void adcInit()
 
     LL_ADC_REG_SetSequencerLength(ADC1, LL_ADC_REG_SEQ_SCAN_DISABLE);
 
-    LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, LL_ADC_CHANNEL_4);
-    LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_4, LL_ADC_SAMPLINGTIME_181CYCLES_5);
+    LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, LL_ADC_CHANNEL_8);
+    LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_8, LL_ADC_SAMPLINGTIME_181CYCLES_5);
 
     delay(10000000);
     LL_ADC_REG_SetTriggerSource(ADC1, LL_ADC_REG_TRIG_SOFTWARE);
@@ -71,8 +69,8 @@ void startConversion()
 
 void printADC()
 {
-    const float SupplyVoltage = 3.0f; // [Volts]
-    const float ADCResolution = 4095.0f;
+    const float supplyVoltage = 3.0f; // [Volts]
+    const float adcResolution = 4095.0f;
     const float re_resistor = 2000.0f;
 
     
@@ -80,12 +78,12 @@ void printADC()
     int16_t result = LL_ADC_REG_ReadConversionData12(ADC1);
 
     float vsense =
-      (SupplyVoltage * result) / ADCResolution; 
+      (supplyVoltage * result) / adcResolution; 
 
-    float percent = result / ADCResolution;
+    float percent = result / adcResolution;
     percent *= 100.0f;
 
-    float rx_resistor = re_resistor / (ADCResolution / (float)result - 1.0f);
+    float rx_resistor = re_resistor / (adcResolution / (float)result - 1.0f);
 
     unsigned int vsenseInt = (unsigned int)vsense;
     float vsenseFrac = vsense - vsenseInt;
