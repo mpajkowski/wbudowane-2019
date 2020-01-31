@@ -73,6 +73,9 @@ void printADC()
 {
     const float SupplyVoltage = 3.0f; // [Volts]
     const float ADCResolution = 4095.0f;
+    const float re_resistor = 2000.0f;
+
+    
 
     int16_t result = LL_ADC_REG_ReadConversionData12(ADC1);
 
@@ -82,11 +85,17 @@ void printADC()
     float percent = result / ADCResolution;
     percent *= 100.0f;
 
+    float rx_resistor = re_resistor / (ADCResolution / (float)result - 1.0f);
+
     unsigned int vsenseInt = (unsigned int)vsense;
     float vsenseFrac = vsense - vsenseInt;
     int vsenseInt2 = trunc(vsenseFrac * 100);
 
+    int resistor = (unsigned int)rx_resistor;
+
     static char adc[11] = {};
+    snprintf(adc, 11, "R: %u", resistor);
+    displayPuts(0, 2, adc, 0);
     snprintf(adc, 11, "Volt: %u.%u2", vsenseInt, vsenseInt2);
     displayPuts(0, 3, adc, 0);
     snprintf(adc, 11, "ADC: %u", (unsigned int)result);
