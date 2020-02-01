@@ -69,14 +69,14 @@ void startConversion()
 
 void printADC()
 {
-    int16_t result = LL_ADC_REG_ReadConversionData12(ADC1);
+    int16_t adcValue = LL_ADC_REG_ReadConversionData12(ADC1);
 
-    float vsense = (SUPPLY_VOLTAGE * result) / ADC_RESOLUTION;
+    float vsense = (SUPPLY_VOLTAGE * adcValue) / ADC_RESOLUTION;
 
-    float percent = (result / ADC_RESOLUTION) * 100.0f;
+    float percent = (adcValue / ADC_RESOLUTION) * 100.0f;
 
     unsigned int rx_resistor =
-      (unsigned int)(RE_RESISTOR / (ADC_RESOLUTION / (float)result - 1.0f));
+      (unsigned int)(RE_RESISTOR / (ADC_RESOLUTION / (float)adcValue - 1.0f));
 
     int vSenseFields[2];
     splitFloat(vsense, vSenseFields, 2);
@@ -84,9 +84,9 @@ void printADC()
     static char adc[11] = {};
     snprintf(adc, 11, "R: %u", rx_resistor);
     displayPuts(0, 2, adc, 0);
-    snprintf(adc, 11, "Volt: %u.%u2", vSenseFields[0], vSenseFields[1]);
+    snprintf(adc, 11, "Volt: %u.%u", vSenseFields[0], vSenseFields[1]);
     displayPuts(0, 3, adc, 0);
-    snprintf(adc, 11, "ADC: %u", (unsigned int)result);
+    snprintf(adc, 11, "ADC: %u", (unsigned int)adcValue);
     displayPuts(0, 4, adc, 0);
     snprintf(adc, 11, "Perc: %u%%", (unsigned int)percent);
     displayPuts(0, 5, adc, 0);
