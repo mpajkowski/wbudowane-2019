@@ -154,7 +154,7 @@ W celu ustawienia daty należy użyć komendy \emph{setDate} w następujący spo
 W celu ustawienia czasu należy użyć komendy \emph{setTime} w następujący sposób:
 
 \begin{lstlisting}
-    setTime HH,SS
+    setTime HH,MM
 \end{lstlisting}
 
 \subsubsection{Pobieranie informacji o aktualnym czasie}
@@ -180,6 +180,33 @@ Po włączeniu urządzenia wywoływane są funkcje inicjalizujące moduły funkc
 urządzenia. Podczas tego procesu konfigurowane i włączane zostają porty GPIO,
 peryferia odpowiadające za I/O, kontrolery przerwań oraz zegary.
 
+W pierwszej kolejności następuje inicjalizacja pinów portu GPIOE - do wyjść
+są podłączone diody znajdujące się na module głównym. Proces ten prezentuje się
+następująco:
+
+\begin{enumerate}
+    \item włączenie linii zegarowej AHB1,
+    \item wybranie pinów pinów 8-15 jako piny aktywne,
+    \item ustawienie wybranych pinów w tryb wyjścia.
+\end{enumerate}
+
+Następnym krokiem jest inicjalizacja wyświetlacza. Podobnie jak w przypadku diod, najpierw
+należy zainicjalizować GPIO. Należy jednak poinformować układ, że 
+będziemy korzystać z protokołu SPI. W przypadku tego procesora 
+taką informację konfiguruje się w czasie uruchomienia poprzez ustawienie
+trybu funkcji alternatywnych oraz wskazania go.
+Dla pinów \emph{DIN} oraz \emph{CLK} wybieramy tryb \emph{AF5}, wybór ten
+oznacza, że będziemy korzystać z \emph{SPI1}.
+
+Pozostałe piny powiązane z wyświetlaczem (\emph{DC}, \emph{CE}*, \emph{RST})
+ustawiamy w tryb wyjścia oraz ustawiamy na nich stan wysoki.
+
+Kolejnym inicjalizowanym urządzeniem peryferyjnym jest przycisk znajdujący
+się na module. Jest on połączony z pinem 0 portu GPIOA. Dla tego pinu ustawiamy tryb
+wejścia.
+
+
+
 Od momentu włączenia urządzenie oczekuje na komunikat z czujnika PIR o wykrytym ruchu - sygnalizowany
 jest on wystawieniem stanu wysokiego na wyjściu GPIO związanego z tym czujnikiem.
 
@@ -194,6 +221,11 @@ jest on wystawieniem stanu wysokiego na wyjściu GPIO związanego z tym czujniki
 % TODO: GPIO, UART, SPI, RTC, EXTI, NVIC
 Projekt został zrealizowany z użyciem płytki ewaluacyjnej STM32F3 Discovery.
 Układ ten został wyposażony w procesor rodziny Arm® Cortex®-M4 - STM32F303VCT6.
+
+\subsection{Interfejsy modułu głównego wykorzystane w projekcie}
+\subsubsection{GPIO}
+\subsubsection{SPI}
+\subsubsection{USART}
 
 \subsubsection{Datasheet}
 \url{https://www.st.com/resource/en/data_brief/stm32f3discovery.pdf}
@@ -297,6 +329,7 @@ Przycisk
 \begin{itemize}
     \item AHB1
     \item GPIOA
+    \item NVIC
     \begin{enumerate}
         \item PIN0 - Stan przycisku
     \end{enumerate}
@@ -327,6 +360,7 @@ Diody LED
 Czujnik ruchu
 \begin{itemize}
     \item AHB1
+    \item NVIC
     \item GPIOA
         \begin{enumerate}
             \item PIN3 - Odczyt stanu
@@ -337,6 +371,7 @@ Bluetooth
 \begin{itemize}
     \item AHB1
     \item APB2
+    \item NVIC
     \item USART1
     \item GPIOA
         \begin{enumerate}
