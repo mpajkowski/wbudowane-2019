@@ -36,7 +36,6 @@ void adcInit()
     LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, LL_ADC_CHANNEL_8);
     LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_8, LL_ADC_SAMPLINGTIME_181CYCLES_5);
 
-    // delay(10000000);
     LL_ADC_REG_SetTriggerSource(ADC1, LL_ADC_REG_TRIG_SOFTWARE);
     LL_ADC_REG_SetContinuousMode(ADC1, LL_ADC_REG_CONV_CONTINUOUS);
     LL_ADC_REG_SetDMATransfer(ADC1, LL_ADC_REG_DMA_TRANSFER_NONE);
@@ -121,12 +120,9 @@ void printADC()
         snprintf(buffer, 15, "ADC: NOT READY");
         displayPuts(0, 3, buffer, 0);
     } else {
-        float adcVoltage = (SUPPLY_VOLTAGE * ADC_AVG_VALUE) / ADC_RESOLUTION;
-
-        float percent = (ADC_AVG_VALUE / ADC_RESOLUTION) * 100.0f;
-
-        unsigned int termistorResistance =
-          (unsigned int)(RE_RESISTOR / (ADC_RESOLUTION / (float)ADC_AVG_VALUE - 1.0f));
+        float adcVoltage = CALCULATE_ADC_VOLTAGE(ADC_AVG_VALUE);
+        float percent = CALCULATE_ADC_PERCENTAGE(ADC_AVG_VALUE);
+        unsigned int termistorResistance = CALCULATE_TERMISTOR_RESISTANCE(ADC_AVG_VALUE);
 
         printResistance(buffer, termistorResistance, 2);
         printVolt(buffer, adcVoltage, 3);

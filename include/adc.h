@@ -17,6 +17,11 @@
 #define SUPPLY_VOLTAGE 3.0f
 #define SAMPLES_NUMBER 1000
 
+#define CALCULATE_ADC_VOLTAGE(ADC_VALUE) (SUPPLY_VOLTAGE * ADC_AVG_VALUE) / ADC_RESOLUTION
+#define CALCULATE_ADC_PERCENTAGE(ADC_VALUE) (ADC_AVG_VALUE / ADC_RESOLUTION) * 100.0f
+#define CALCULATE_TERMISTOR_RESISTANCE(ADC_VALUE)                                                  \
+    (unsigned int)(RE_RESISTOR / (ADC_RESOLUTION / (float)ADC_AVG_VALUE - 1.0f))
+
 extern short ADC_AVG_VALUE;
 
 void adcInit();
