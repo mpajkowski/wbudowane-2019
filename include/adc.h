@@ -23,11 +23,9 @@
 #define CALCULATE_TERMISTOR_RESISTANCE(ADC_VALUE)                                                  \
     (unsigned int)(EXEMPLARY_RESISTOR / (ADC_RESOLUTION / (float)ADC_AVG_VALUE - 1.0f))
 
-#define INTERVAL_MIN_RES(INTERVAL) KTY_81_210_TAB[INTERVAL][2]
-#define INTERVAL_MAX_RES(INTERVAL) KTY_81_210_TAB[INTERVAL][3]
 
 extern short ADC_AVG_VALUE;
-extern const float KTY_81_210_TAB[24][4];
+extern const float KTY_81_210_TAB[24][3];
 void adcInit();
 void analogInputInit();
 void startConversion();
