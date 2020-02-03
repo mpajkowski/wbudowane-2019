@@ -4,6 +4,27 @@
 #include <stm32f3xx_ll_exti.h>
 
 short ADC_AVG_VALUE = -1;
+/*
+    KTY_81_210_TAB
+    [0] -> Ambient temperature (°C)
+    [1] -> Temperature coefficient (%/K)
+    [2] -> Min Resistance (Ω)
+    [3] -> Max Resistance (Ω)
+*/
+const float KTY_81_210_TAB[24][4] = {
+    { -55.0, 0.99, 951.0, 999.0 },   { -50.0, 0.98, 1000.0, 1059.0 },
+    { -40.0, 0.96, 1105.0, 1165.0 }, { -30.0, 0.93, 1218.0, 1277.0 },
+    { -20.0, 0.91, 1338.0, 1396.0 }, { -10.0, 0.88, 1467.0, 1523.0 },
+    { 0.0, 0.85, 1603.0, 1656.0 },   { 10.0, 0.83, 1748.0, 1797.0 },
+    { 20.0, 0.8, 1901.0, 1944.0 },   { 25.0, 0.79, 1980.0, 2020.0 },
+    { 30.0, 0.78, 2057.0, 2102.0 },  { 40.0, 0.75, 2217.0, 2272.0 },
+    { 50.0, 0.73, 2383.0, 2451.0 },  { 60.0, 0.71, 2557.0, 2637.0 },
+    { 70.0, 0.69, 2737.0, 2832.0 },  { 80.0, 0.67, 2924.0, 3035.0 },
+    { 90.0, 0.65, 3118.0, 3246.0 },  { 100.0, 0.63, 3318.0, 3466.0 },
+    { 110.0, 0.59, 3523.0, 3691.0 }, { 120.0, 0.53, 3722.0, 3912.0 },
+    { 125.0, 0.49, 3815.0, 4016.0 }, { 130.0, 0.44, 3901.0, 4114.0 },
+    { 140.0, 0.33, 4049.0, 4283.0 }, { 150.0, 0.2, 4153.0, 4407.0 }
+};
 
 static inline void adcCalibrate()
 {
@@ -82,6 +103,31 @@ void startConversion()
     }
 }
 
+float temperatureInterpolation(float resistance, int interval)
+{
+    static short tempSpread;
+
+    if (interval == 23) {
+        tempSpread = abs(KTY_81_210_TAB[interval][0] - KTY_81_210_TAB[interval - 1][0]);
+    } else {
+        tempSpread = abs(KTY_81_210_TAB[interval][0] - KTY_81_210_TAB[interval + 1][0]);
+    }
+
+    float result = (resistance - INTERVAL_MIN_RES(interval)) /
+                   (INTERVAL_MAX_RES(interval) - INTERVAL_MIN_RES(interval));
+    return KTY_81_210_TAB[interval][0] + (result * (float)tempSpread);
+}
+
+float resistanceToCelcius(float resistance)
+{
+    // Find resistance interval
+    int interval = 0;
+    for (; interval < 24; interval++)
+        if (resistance < KTY_81_210_TAB[interval][3])
+            break;
+    return temperatureInterpolation(resistance, interval);
+}
+
 static inline void printResistance(char* buffer, unsigned int resistance, uint8_t line)
 {
     snprintf(buffer, 11, "R: %u", resistance);
@@ -96,10 +142,18 @@ static inline void printVolt(char* buffer, float adcVoltage, uint8_t line)
     displayPuts(0, line, buffer, 0);
 }
 
+static inline void printTemp(char* buffer, float temp, uint8_t line)
+{
+    static int tempFields[2];
+    splitFloat(temp, tempFields, 2);
+    snprintf(buffer, 11, "Temp: %u.%u", tempFields[0], tempFields[1]);
+    displayPuts(0, line, buffer, 0);
+}
+
 static inline void printAdc(char* buffer, short adcValue, uint8_t line)
 {
     if (adcValue == -1) {
-        snprintf(buffer, 11, "ADC: NOT RDY");
+        snprintf(buffer, 13, "ADC: NOT RDY");
     } else {
         snprintf(buffer, 11, "ADC: %u", (unsigned int)adcValue);
     }
@@ -121,13 +175,14 @@ void printADC()
         displayPuts(0, 3, buffer, 0);
     } else {
         float adcVoltage = CALCULATE_ADC_VOLTAGE(ADC_AVG_VALUE);
-        float percent = CALCULATE_ADC_PERCENTAGE(ADC_AVG_VALUE);
+        // float percent = CALCULATE_ADC_PERCENTAGE(ADC_AVG_VALUE);
         unsigned int termistorResistance = CALCULATE_TERMISTOR_RESISTANCE(ADC_AVG_VALUE);
-
+        float temperature = resistanceToCelcius(termistorResistance);
         printResistance(buffer, termistorResistance, 2);
         printVolt(buffer, adcVoltage, 3);
         printAdc(buffer, ADC_AVG_VALUE, 4);
-        printPercentage(buffer, percent, 5);
+        printTemp(buffer, temperature, 5);
+        // printPercentage(buffer, percent, 5);
     }
 }
 
