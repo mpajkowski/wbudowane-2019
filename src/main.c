@@ -9,7 +9,7 @@
 #include "utils.h"
 int main()
 {
-    delay(10000);
+    // delay(10000);
     ledInit();
     displayInit();
     // motionInit();
