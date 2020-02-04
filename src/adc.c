@@ -1,25 +1,6 @@
 #include "adc.h"
-#include "utils.h"
-#include <math.h>
-#include <stm32f3xx_ll_exti.h>
 
 short ADC_AVG_VALUE = -1;
-/*
-    KTY_81_210_TAB
-    [0] -> Ambient temperature (°C)
-    [1] -> Temperature coefficient (%/K)
-    [2] -> AVG Resistance (Ω)
-*/
-const float KTY_81_210_TAB[24][3] = {
-    { -55.0, 0.99, 980.0 },  { -50.0, 0.98, 1030.0 }, { -40.0, 0.96, 1135.0 },
-    { -30.0, 0.93, 1247.0 }, { -20.0, 0.91, 1367.0 }, { -10.0, 0.88, 1495.0 },
-    { 0.0, 0.85, 1630.0 },   { 10.0, 0.83, 1772.0 },  { 20.0, 0.8, 1922.0 },
-    { 25.0, 0.79, 2000.0 },  { 30.0, 0.78, 2080.0 },  { 40.0, 0.75, 2245.0 },
-    { 50.0, 0.73, 2417.0 },  { 60.0, 0.71, 2597.0 },  { 70.0, 0.69, 2785.0 },
-    { 80.0, 0.67, 2980.0 },  { 90.0, 0.65, 3182.0 },  { 100.0, 0.63, 3392.0 },
-    { 110.0, 0.59, 3607.0 }, { 120.0, 0.53, 3817.0 }, { 125.0, 0.49, 3915.0 },
-    { 130.0, 0.44, 4008.0 }, { 140.0, 0.33, 4166.0 }, { 150.0, 0.2, 4280.0 }
-};
 
 static inline void adcCalibrate()
 {
@@ -48,14 +29,12 @@ void adcInit()
     LL_ADC_SetCommonPathInternalCh(__LL_ADC_COMMON_INSTANCE(ADC1), LL_ADC_PATH_INTERNAL_NONE);
 
     LL_ADC_REG_SetSequencerLength(ADC1, LL_ADC_REG_SEQ_SCAN_DISABLE);
-
     LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, LL_ADC_CHANNEL_8);
+    
     LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_8, LL_ADC_SAMPLINGTIME_181CYCLES_5);
-
     LL_ADC_REG_SetTriggerSource(ADC1, LL_ADC_REG_TRIG_SOFTWARE);
     LL_ADC_REG_SetContinuousMode(ADC1, LL_ADC_REG_CONV_CONTINUOUS);
     LL_ADC_REG_SetDMATransfer(ADC1, LL_ADC_REG_DMA_TRANSFER_NONE);
-
     LL_ADC_REG_SetOverrun(ADC1, LL_ADC_REG_OVR_DATA_OVERWRITTEN);
 
     adcCalibrate();
@@ -78,7 +57,7 @@ void ADC1_IRQHandler()
     static unsigned long acumulator;
 
     if (counter == SAMPLES_NUMBER) {
-        ADC_AVG_VALUE = (short)((float)acumulator / (float)SAMPLES_NUMBER);
+        ADC_AVG_VALUE = (float)acumulator / (float)SAMPLES_NUMBER;
         counter = 0;
         acumulator = 0;
     } else {
@@ -102,29 +81,25 @@ float temperatureInterpolation(float resistance, int interval)
 {
     static short tempSpread;
 
-    if (interval == 23) {
+    if (interval == TAB_SIZE - 1) {
         return 150.0f;
     } else if (interval == 0) {
         return -55.0f;
     } else {
-        tempSpread = KTY_81_210_TAB[interval + 1][0] - KTY_81_210_TAB[interval][0];
+        tempSpread = TEMP_SENSOR_TAB[interval + 1][0] - TEMP_SENSOR_TAB[interval][0];
     }
-    float rest = resistance - KTY_81_210_TAB[interval][2];
-    float result = KTY_81_210_TAB[interval + 1][2] - KTY_81_210_TAB[interval][2];
+    float rest = resistance - TEMP_SENSOR_TAB[interval][2];
+    float result = TEMP_SENSOR_TAB[interval + 1][2] - TEMP_SENSOR_TAB[interval][2];
     float ratio = rest / result;
-    return KTY_81_210_TAB[interval][0] + (float)tempSpread * ratio;
-
-    // float result = (resistance - INTERVAL_MIN_RES(interval)) /
-    //                (INTERVAL_MAX_RES(interval) - INTERVAL_MIN_RES(interval));
-    // return KTY_81_210_TAB[interval][0] + (result * (float)tempSpread);
+    return TEMP_SENSOR_TAB[interval][0] + (float)tempSpread * ratio;
 }
 
 float resistanceToCelcius(float resistance)
 {
     // Find resistance interval
     int interval = 0;
-    for (; interval < 24; interval++)
-        if (resistance < KTY_81_210_TAB[interval][2])
+    for (; interval < TAB_SIZE; interval++)
+        if (resistance < TEMP_SENSOR_TAB[interval][2])
             break;
     return temperatureInterpolation(resistance, interval - 1);
 }
@@ -151,12 +126,12 @@ static inline void printTemp(char* buffer, float temp, uint8_t line)
     displayPuts(0, line, buffer, 0);
 }
 
-static inline void printAdc(char* buffer, short adcValue, uint8_t line)
+static inline void printAdc(char* buffer, unsigned short adcValue, uint8_t line)
 {
     if (adcValue == -1) {
         snprintf(buffer, 13, "ADC: NOT RDY");
     } else {
-        snprintf(buffer, 11, "ADC: %u", (unsigned int)adcValue);
+        snprintf(buffer, 11, "ADC: %4u", adcValue);
     }
     displayPuts(0, line, buffer, 0);
 }
@@ -175,15 +150,11 @@ void printADC()
         snprintf(buffer, 15, "ADC: NOT READY");
         displayPuts(0, 3, buffer, 0);
     } else {
-        float adcVoltage = CALCULATE_ADC_VOLTAGE(ADC_AVG_VALUE);
-        // float percent = CALCULATE_ADC_PERCENTAGE(ADC_AVG_VALUE);
         unsigned int termistorResistance = CALCULATE_TERMISTOR_RESISTANCE(ADC_AVG_VALUE);
-        float temperature = resistanceToCelcius(termistorResistance);
         printResistance(buffer, termistorResistance, 2);
-        printVolt(buffer, adcVoltage, 3);
+        printVolt(buffer, CALCULATE_ADC_VOLTAGE(ADC_AVG_VALUE), 3);
         printAdc(buffer, ADC_AVG_VALUE, 4);
-        printTemp(buffer, temperature, 5);
-        // printPercentage(buffer, percent, 5);
+        printTemp(buffer, resistanceToCelcius(termistorResistance), 5);
     }
 }
 

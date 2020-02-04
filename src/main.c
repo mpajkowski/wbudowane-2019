@@ -9,10 +9,9 @@
 #include "utils.h"
 int main()
 {
-    // delay(10000);
     ledInit();
     displayInit();
-    // motionInit();
+    motionInit();
     serialInit();
     buttonInit();
 
@@ -26,15 +25,9 @@ int main()
     displayClearBuf();
 
     setTime(23, 59, 40);
-    setDate(1, 1, 1, 19);
+    setDate(5, 6, 2, 20);
     
     analogInputInit();
     adcInit();
     startConversion();
-
-    // while (1) {
-    //     delay(1000000);
-    //     displayClearBuf();
-    //     printADC();
-    // }
 }
