@@ -14,8 +14,6 @@ void serialInit()
         .Mode = LL_GPIO_MODE_ALTERNATE,
         .Speed = LL_GPIO_SPEED_FREQ_HIGH,
         .Alternate = LL_GPIO_AF_7,
-        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
-        .Pull = LL_GPIO_PULL_UP,
     };
 
     LL_USART_InitTypeDef uartInit = {

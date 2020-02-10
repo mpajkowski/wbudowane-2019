@@ -17,8 +17,6 @@ void motionInit()
     LL_GPIO_InitTypeDef gpio = {
         .Pin = MOTION_STATE,
         .Mode = LL_GPIO_MODE_INPUT,
-        .Speed = LL_GPIO_SPEED_FREQ_HIGH,
-        .Pull = LL_GPIO_PULL_DOWN,
     };
 
     LL_GPIO_Init(MOTION_PORT, &gpio);
@@ -54,5 +52,4 @@ void EXTI3_IRQHandler()
 
         LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_3);
     }
-
 }

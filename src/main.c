@@ -6,7 +6,9 @@
 #include "rtc.h"
 #include "serial.h"
 #include "string.h"
+#include "trace.h"
 #include "utils.h"
+
 int main()
 {
     ledInit();
@@ -26,7 +28,7 @@ int main()
 
     setTime(23, 59, 40);
     setDate(5, 6, 2, 20);
-    
+
     analogInputInit();
     adcInit();
     startConversion();
