@@ -94,14 +94,14 @@ Urządzenia zewnętrzne:
     \hline
     Osoba odpowiedzialna & Moduł funkcjonalny\\
     \hline
-    Marcin Pajkowski
+    Marcin Pajkowski (50\%)
     & Komunikacja UART (serial.h, serial.c)\\
     & Wyświetlacz (display.h, display.c)\\
     & Moduł logujący (trace.h)\\
     & Czujnik ruchu (motion.h, motion.c)\\
     & Komendy (shell.h, shell.c)\\
     \hline
-    Bartosz Myśliwiec
+    Bartosz Myśliwiec (50\%)
     & RTC (rtc.h, rtc.c)\\
     & Sygnalizacja za pomocą diod (led.h, led.c)\\
     & Czujnik temperatury (adc.h, adc.c)\\
@@ -230,11 +230,137 @@ jest właczenie przerwania IRQ dla \emph{USART1}. "Właścicielem" tego przerwan
 \paragraph{Przycisk}
 Kolejnym inicjalizowanym urządzeniem peryferyjnym jest przycisk znajdujący
 się na module. Jest on połączony z pinem 0 portu GPIOA. Dla tego pinu ustawiamy tryb
-wejścia.
-%% TUTAJ DAĆ O INICJALIZACJI:
-%%  * przycisk (dokończyć),
-%%  * rtc,
-%%  * adc,
+wejścia. Po naciśnięciu guzika są włączane diody - jest to zrealizowane za pomocą przerwania \emph{EXTI}
+
+\paragraph{RTC}
+Inicjalizacje RTC rozpoczynamy od włączenia zewnętrznego zegara wysokiej częstotliwości HSE.
+RTC może być taktowane z zegarów HSE, LSE lub LSI. Zdecydowaliśmy się na zegar HSE ponieważ
+płytka STM32F3DISCOVERY nie jest fabrycznie wyposażona w oscylator kwarcowy zapewniający
+taktowanie dla LSE, a taktowanie z LSI okazało się być nieodpowiednie dla zegara RTC, zegar
+taktowany tym zegarem przyśpieszał lub spowalniał co powodowało desynchronizacje i utratę informacji
+o czasie jaki upłynął. Zegar HSE posiada zbyt dużą częstotliwość taktowania dlatego konieczne jest
+skorzystanie z dzielnika.
+Żeby włączyć zegar HSE korzystamy z peryferium RCC które kontroluje inne peryferia w tym zegar
+HSE.
+Następnie czekamy aż RCC zgłosi gotowość do działania HSE poprzez ustawienie bitu HSERDY.
+
+Kolejnym krokiem jest włączenie zegara PWR i zdjęcie blokady dostępu do backupu w którym jest
+przechowywana konfiguracje źródła zegara RTC.
+Ustalamy źródło taktowania zegara RTC jako HSE z dzielnikiem o wartości 32.
+Włączamy RTC ustawiając bit RTCEN w rejestrze BDCR peryferium RCC.
+Rejestry RTC są chronione przed zmianą, żeby móc je edytować konieczne jest wyłączenie blokady, w
+tym celu wpisujemy do rejestru WPR sekwencje 0xCA, 0x53. Od teraz rejestry RTC mogą być
+edytowane.
+
+Włączamy tryb inicjalizacji.
+Ustawiamy wartości preskalowania synchronicznego i asynchronicznego. Preskalowanie ma na celu 
+zapewnienie taktowania $ ck_spre $ równe \emph{1Hz}.
+
+Ponieważ w naszym przypadku wybraliśmy zegar
+HSE dzielony przez 4. Ustaliliśmy preskaler asynchroniczny na 124, a preskaler synchroniczny na 1999.
+$$ 250000 / (125*2000) = 1Hz $$
+Następnie opuszczamy tryb inicjalizacji, blokujemy możliwość edycji rejestrów RTC oraz blokujemy
+dostęp do backup’u.
+
+Następnym etapem jest ustawienie czasu. Włączamy możliwość edycji backup’u, wyłączamy blokadę
+edycji rejestrów RTC, wchodzimy w tryb inicjalizacji. Umieszczamy czas w rejestrze TR oraz informacje
+że chcemy reprezentować czas w formacie 24 godzinnym.
+Wychodzimy z trybu inicjalizacji, Wyłączamy możliwość edycji backup’u, włączamy blokadę edycji
+rejestrów RTC.
+Kolejnym etapem jest ustawienie daty. Włączamy możliwość edycji backup’u, wyłączamy blokadę edycji
+rejestrów RTC, wchodzimy w tryb inicjalizacji. Umieszczamy datę i dzień tygodnia w rejestrze DR.
+Wychodzimy z trybu inicjalizacji, Wyłączamy możliwość edycji backup’u, włączamy blokadę edycji
+rejestrów RTC.
+Dokonujemy inicjalizacji alarmu. Włączamy dostęp do backup’u, dezaktywujemy alarm A by móc go
+ponownie skonfigurować, czekamy aż flaga ALRAW przestanie być ustawiona.
+Inicjalizujemy alarm z maską ustawioną na wszystkie pola rejestru, oznacza to że alarm będzie
+uruchamiany co sekundę. Włączamy ponownie dostęp do backupu ponieważ funkcja biblioteczna
+automatycznie go wyłącza, aktywujemy alarm, blokujemy dostęp do backup’u.
+Ostatnim krokiem jest włączenie generowania przerwania za każdym razem gdy zostanie ustawiona flaga
+oznaczająca wystąpienie alarmu A.
+Włączamy dostęp do backup’u, włączamy alarm A, aktywujemy przerwanie na linii 17 kontrolera
+
+przerwań EXTI, ustalamy generowanie przerwania na rosnącym zboczu. Ustawiamy priorytet 15.
+aktywujemy obsługę alarmu, blokujemy dostęp do backup’u.
+Obsługa przerwania polega na odblokowania dostępu do backup’u wyczszczenia flagi alarmu,
+wyczyszczeniu flagi przerwania EXTI, pobranie godziny, wykonanie zaplanowanych rutyn,
+zablokowanie dostępu do backup’u.
+
+\paragraph{Przetwornik analogowo-cyfrowy}
+Przetworniki analogowo-cyfrowe to układy peryferyjne które są
+zdolne do przetwarzania wejściowej wartości napięcia w postaci analogowej
+na reprezentacje w postaci cyfrowej, dzięki czemu można korzystać z dyskretyzowanych pomiarów
+wartości które z natury są analogowe takie jak: temperatura, napięcie, wilgotność itp.
+Mikrokontroler w który wyposażona jest płytka STM32F3DISCOVERY posiada cztery
+przetworniki analogowo-cyfrowe. Są to przetworniki typu SAR(successive-approximation-register)
+Pierwszym krokiem jest więc włączenie zegara ADC. Wybraliśmy taktowanie zegara szyny
+AHB z systemowym dzielnikiem przez 2.
+ADC w tym mikrokontrolerze może wykonywać pomiary w trybie pojedynczego pomiaru(one
+shot) jednego kanału bądź ich sekwencji. Tryb ten może być używany na przykład do sprawdzenia
+warunków koniecznych do uruchomienia pozostałych elementów systemu, na przykład podjęciu decyzji
+czy bateria posiada odpowiedni napięcie. Po zakończeniu pomiaru przetwornik wymaga ponownego
+skonfigurowania by wykonać następny pomiar.
+Ponieważ chcemy wyświetlać bieżącą temperaturę korzystamy z innego trybu, a mianowicie
+trybu Continuous, który wykonuje następny pomiar od razu po zakończeniu pierwszego pomiaru bądź
+sekwencji pomiarów. Nie jest konieczne ponowne konfigurowanie i aktywowanie przetwornika. W celu
+użycia trybu Continuous ustawiamy w rejestrze CFGR przetwornika ADC1
+bit CONT na 1.
+ADC może wykonywać pomiar jednego kanału, bądź sekwencje pomiarów różnych kanałów.
+Do wykonania kilku pomiarów(scan mode) należy ustalić ich ilość w rejestrze SQR1.
+Ponieważ wykonujemy pomiar tylko jednego kanału, ustawiamy w rejestrze SQR1 bity L na 0.
+Kolejnym krokiem jest ustalenie kolejności kanałów które będą mierzone, ponieważ używamy
+tylko jednego kanału dokonujemy tylko jego konfiguracji i ustalamy że jego pomiar ma być wykonywany
+jako pierwszy. Ponieważ odczyt następuje z portu GPIO który jest podłączony do ósmego kanału ADC1
+wpisujemy wartość go reprezentującą w bity SQ1 rejestru SQR1.
+Następnie ustalamy co ile cykli ADC ma być wykonywany pomiar na danym kanale,
+zdecydowaliśmy się na użycie najrzadszego wykonywania pomiarów czyli co 601.5 cykla ADC. Częstsze
+wykonywanie pomiarów nie jest potrzebne ponieważ wyświetlamy wynik co 1 sekundę.
+By skonfigurować częstotliwość pomiarów na 601.5 cykla ADC wpisujemy 7 w bity SMP1 rejestru
+SMPR1.
+Możliwe wartości rozdzielczości to 6, 8, 10 oraz 12 bitów na pomiar. W naszej aplikacji
+przetwornika ADC w celu zapewnienia najbardziej dokładnych pomiarów zdecydowaliśmy się na
+wykorzystanie maksymalnej rozdzielczości – 12 bitowej.
+Dokonujemy ustawienia rozdzielczości wykonywanych pomiarów w tym celu ustawiamy w
+
+rejestrze CFGR przetwornika ADC1 bity RES na 0 co informuje przetwornik że chcemy otrzymywać
+wynik konwersji w postaci 12 bitowej.
+Dla 12 bitowej rozdzielczości występuje $$ 2^{12} = 4096 $$ stopni dyskretyzacji, oznacza to że w
+naszym przypadku wartość pomiaru mieści się w przedziale od 0 dla wartości bliskich braku mierzonego
+napięcia do 4095 dla wartości mierzonego napięcia bliskich wartości napięcia referencyjnego bądź od
+niego większych. Ponieważ napięcie referencyjne w płytce STM32F3DISCOVERY wynosi 3V oznacza
+to że zakres pomiarowy mieści się od 0V do 3V.
+Następnym krokiem jest określenie czy wynik konwersji ma być wyrównany do lewej czy
+prawej. Zdecydowaliśmy się na wyrównanie do prawej, ponieważ taki rodzaj wyrównania nie wymaga
+późniejszej konwersji programowej w celu uzyskania wyniku. Wyrównanie do prawej oznacza ze
+najbardziej znaczące bity RDATA w rejestrze DR są dopełniane zerami.
+By uzyskać wyrównanie do prawej ustawiamy w rejestrze CFGR przetwornika ADC1 bit ALIGN
+na wartość 0.
+Ponieważ wyniki chcemy pobierać po każdej zakończonej konwersji, włączamy generowanie
+przerwania po zakończeniu sekwencji konwersji. W tym celu ustawiamy bit EOSIE na 1 w rejestrze IER.
+Następnie aktywujemy przetwornik ADC1 ustawiając w rejestrze kontrolnym CR bit ADEN na
+jeden i czekamy aż przetwornik zgłosi gotowość do pracy ustawiając flagę ADRDY w rejestrze ISR.
+Ostatni krok to zarejestrowanie przerwanie w NVIC oraz rozpoczęcie konwersji ustawiając w
+rejestrze kontrolnym CR wartość ADSTART na 1.
+Od teraz po każdej skończonej konwersji występuje przerwanie, przerwanie to jest obsłużone w ten
+sposób że umieszczamy wynik konwersji w zmiennej pełniącej funkcję akumulatora a na koniec
+ustawiamy flagę EOS na 0, po 500 konwersjach wyliczamy średnią arytmetyczną i zmieniamy zmienna
+globalną reprezentującą średnią wartość konwersji, zabieg ten ma na celu wyeliminowanie szumu jaki
+może wpływać na wynik pojedynczej konwersji.
+Kluczowym czynnikiem wpływającym na dokładność pomiaru jest stała wartość napięcia
+referencyjnego. Jest to spowodowane tym że zasada działania przetwornika opiera się na porównywaniu
+wartości mierzonego napięcia z wartością napięcia referencyjnego, wynik ten wyrażany jest w dyskretnej
+skali której przedział zaczyna się od zera a maksimum jest zależne od rozdzielczości wykonywanych
+pomiarów która jest wyrażona w bitach na pomiar.
+W celu zmierzenia temperatury otoczenia wykorzystaliśmy termometr KTY81-210 jest to
+krzemowy czujnik temperatury oparty na zasadzie działania termistora, to znaczy że rezystancja elementu
+zmienia się wraz z jego temperaturą. Zaletami tego czujnika są: niska cena, brak polaryzacji, podłączenie
+wymaga tylko dwóch pinów. Wadami zaś jest niska dokładność pomiarów.
+
+Ponieważ czujnik KTY81-210 wyraża temperaturę jako rezystancję, a przetworniki analogowo-cyfrowe
+mikroprocesora STM32F3DISCOVERY są zdolne jedynie do mierzenia napięcia, konieczne jest
+zastosowanie dzielnika napięcia.
+
+W tym celu zrealizowano układ dzielnika napięcia przedstawiony na poniższym schemacie.
 
 \paragraph{Zadania}
 Poniższe zadania zostały zrealizowane za pomocą przerwań.
@@ -372,7 +498,8 @@ Użyte przerwania zewnętrzne:
 \begin{enumerate}
     \item \emph{EXTI} - przerwanie przycisku,
     \item \emph{USART} - przerwanie wyzwalane gdy przyjdą dane z UART,
-    %% TODO uzupełnić RTC, ADC
+    \item \emph{RTC\_Alarm} - wyzwalane co sekundę,
+    \item \emph{ADC} - wyzwalane po każdej konwersji,
 \end{enumerate}
 
 \paragraph{Funkcje zwrotne przerwań}
@@ -541,6 +668,18 @@ Bluetooth
         \end{enumerate}
 \end{itemize}
 
+\section{Analiza FMEA}
+\begin{table}[]
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+Ryzyko                                                                           & Prawdopodobieństwo & Znaczenie & (Samo)wykrywalność                                                                                                                        & Iloczyn \\
+\hline
+Uszkodzenie mikrokontrolera                                                      & 0.1                & 10        & \begin{tabular}[c]{@{}l@{}}Brak komunikacji przez\\ port szeregowy. Analiza\\ utraty połączenia po stronie\\ odbiorcy danych\end{tabular} & 1       \\
+\hline
+\begin{tabular}[c]{@{}l@{}}Uszkodzenie przewodów łączących\\ moduły\end{tabular} & 0.3                & 9         & \begin{tabular}[c]{@{}l@{}}Pomiary nie mieszczące się w normach,\\ brak obrazu\end{tabular}                                               & 3       \\
+                                                                                 &                    &           &                                                                                                                                           &        
+\end{tabular}
+\end{table}
 \section{Biblioteki zewnętrzne użyte do zrealizowania projektu}
 
 \begin{itemize}
